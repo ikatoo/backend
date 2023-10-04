@@ -11,15 +11,21 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  name     String
-  email    String
-  password String
+  id          Int           @id @default(autoincrement())
+  name        String
+  email       String
+  password    String
+  skills      Skill[]
+  SkillsPage  SkillsPage[]
+  AboutPage   AboutPage[]
+  ContactPage ContactPage[]
+  Project     Project[]
 }
 
 model Skill {
   id    Int    @id @default(autoincrement())
   title String
+  users User[]
 }
 
 model TokenBlacklist {
@@ -31,6 +37,8 @@ model SkillsPage {
   id          Int      @id @default(autoincrement())
   description String
   lastJobs    DateTime
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
 }
 
 model AboutPage {
@@ -38,12 +46,16 @@ model AboutPage {
   description     String
   illustrationUrl String
   illustrationAlt String
+  user            User   @relation(fields: [userId], references: [id])
+  userId          Int
 }
 
 model ContactPage {
   id           Int    @id @default(autoincrement())
   description  String
   localization String
+  user         User   @relation(fields: [userId], references: [id])
+  userId       Int
 }
 
 model Project {
@@ -52,4 +64,6 @@ model Project {
   snapshot    String
   githubLink  String
   lastUpdate  DateTime
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
 }
