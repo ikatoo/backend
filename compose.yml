@@ -1,0 +1,38 @@
+services:
+
+  postgres:
+    # container_name: ${POSTGRES_HOSTNAME}
+    image: postgres:14-alpine
+    # volumes:
+    #   - ./db/scripts:/db/scripts
+    #   - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DBNAME}
+    ports:
+      - 5432:5432
+  
+  adminer:
+    image: adminer
+    restart: always
+    links:
+      - postgres
+    ports:
+      - ${ADMINER_PORT}:8080
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      # ADMINER_DEFAULT_SERVER: ${POSTGRES_HOSTNAME}
+
+  # node:
+  #   image: "node:18"
+  #   volumes:
+  #     - ".:/app"
+  #   ports:
+  #     - "${PORT}:${PORT}"
+  #   links:
+  #     - postgres
+  #   working_dir: "/app"
+  #   environment:
+  #     - NODE_ENV=e2e
+  #   command: "npx tsx watch src/infra/http/index.ts"

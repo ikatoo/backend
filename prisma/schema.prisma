@@ -9,3 +9,47 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String
+  password String
+}
+
+model Skill {
+  id    Int    @id @default(autoincrement())
+  title String
+}
+
+model TokenBlacklist {
+  id   Int    @id @default(autoincrement())
+  code String
+}
+
+model SkillsPage {
+  id          Int      @id @default(autoincrement())
+  description String
+  lastJobs    DateTime
+}
+
+model AboutPage {
+  id              Int    @id @default(autoincrement())
+  description     String
+  illustrationUrl String
+  illustrationAlt String
+}
+
+model ContactPage {
+  id           Int    @id @default(autoincrement())
+  description  String
+  localization String
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  description String
+  snapshot    String
+  githubLink  String
+  lastUpdate  DateTime
+}
