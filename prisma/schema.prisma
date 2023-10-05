@@ -35,6 +35,7 @@ model TokenBlacklist {
 
 model SkillsPage {
   id          Int      @id @default(autoincrement())
+  title       String
   description String
   lastJobs    DateTime
   user        User     @relation(fields: [userId], references: [id])
@@ -43,6 +44,7 @@ model SkillsPage {
 
 model AboutPage {
   id              Int    @id @default(autoincrement())
+  title           String
   description     String
   illustrationUrl String
   illustrationAlt String
@@ -52,6 +54,7 @@ model AboutPage {
 
 model ContactPage {
   id           Int    @id @default(autoincrement())
+  title        String
   description  String
   localization String
   user         User   @relation(fields: [userId], references: [id])
@@ -60,6 +63,7 @@ model ContactPage {
 
 model Project {
   id          Int      @id @default(autoincrement())
+  title       String
   description String
   snapshot    String
   githubLink  String
