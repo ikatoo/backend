@@ -1,0 +1,25 @@
+@host = http://localhost:3000
+
+###
+GET {{host}}/about/user-id/1 HTTP/1.1
+
+###
+POST {{host}}/about HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "About Page Test",
+  "description": "Descrição da pagina de about",
+  "userId": 1
+}
+
+###
+PATCH {{host}}/about/user-id/1 HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "About Page Test Atualizada 2"
+}
+
+###
+DELETE {{host}}/about/user-id/1 HTTP/1.1
