@@ -22,7 +22,7 @@ export class AboutPageController {
   }
 
   @Get('user-id/:userId')
-  findOne(@Param('userId') userId: string) {
+  findByUser(@Param('userId') userId: string) {
     return this.aboutPageService.findByUser(+userId);
   }
 
