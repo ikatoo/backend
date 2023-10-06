@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAboutPageDto } from './dto/create-about-page.dto';
 import { UpdateAboutPageDto } from './dto/update-about-page.dto';
-import { PrismaService } from 'src/infra/db/prisma/prisma.service';
+import { PrismaService } from '../../infra/db/prisma/prisma.service';
 
 @Injectable()
 export class AboutPageService {

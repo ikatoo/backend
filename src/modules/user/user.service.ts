@@ -1,8 +1,8 @@
+import { PrismaService } from 'src/infra/db/prisma/prisma.service';
+import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/infra/db/prisma/prisma.service';
-import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 
 @Injectable()
 export class UserService {
