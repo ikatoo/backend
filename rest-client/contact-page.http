@@ -1,0 +1,26 @@
+@host = http://localhost:3000
+
+###
+GET {{host}}/contact/user-id/2 HTTP/1.1
+
+###
+POST {{host}}/contact HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "Título da página de contato do usuario 2",
+  "description": "Descrição da página de contato 2.",
+  "localization": "-41.023423497,-34.4598423902",
+  "userId": 2
+}
+
+###
+PATCH {{host}}/contact/user-id/2 HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "Título da página de contato 2 Atualizada",
+}
+
+###
+DELETE {{host}}/contact/user-id/1 HTTP/1.1
