@@ -1,5 +1,9 @@
 @host = http://localhost:3000
 
+###
+GET {{host}}/users HTTP/1.1
+
+###
 POST {{host}}/user HTTP/1.1
 Content-Type: application/json
 

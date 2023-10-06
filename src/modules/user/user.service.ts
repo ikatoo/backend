@@ -11,6 +11,10 @@ export class UserService {
     private readonly crypto: CryptoService,
   ) {}
 
+  async listAll() {
+    return await this.prisma.user.findMany();
+  }
+
   async create(createUserDto: CreateUserDto) {
     const { password, ...user } = createUserDto;
     const hashPassword = await this.crypto.hasher(8, password);
