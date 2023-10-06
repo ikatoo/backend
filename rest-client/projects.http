@@ -1,0 +1,36 @@
+@host = http://localhost:3000
+
+### GET PROJECTS BY USER-ID
+GET {{host}}/projects/user-id/2 HTTP/1.1
+
+### LIST ALL PROJECTS
+GET {{host}}/projects HTTP/1.1
+
+### LIST PROJECTS BY PARTIAL TITLE
+GET {{host}}/projects/title/test HTTP/1.1
+
+### CREATE A PROJECT
+POST {{host}}/project HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "NEW Project title - user 1",
+  "description": "NEW Project description - user 1",
+  "snapshot": "NEW url of snapshot - user 1",
+  "githubLink": "NEW url of repository user 1",
+  "lastUpdate": 1696597748468,
+  "userId": 2
+}
+
+###
+PATCH {{host}}/project/4 HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "Project update",
+  "description": "Project description update",
+  "lastUpdate": 1696597748461
+}
+
+###
+DELETE {{host}}/project/4 HTTP/1.1
