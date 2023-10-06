@@ -16,10 +16,10 @@ model User {
   email       String
   password    String
   skills      Skill[]
+  projects    Project[]
   SkillsPage  SkillsPage[]
   AboutPage   AboutPage[]
   ContactPage ContactPage[]
-  Project     Project[]
 }
 
 model Skill {
@@ -68,6 +68,5 @@ model Project {
   snapshot    String
   githubLink  String
   lastUpdate  DateTime
-  user        User     @relation(fields: [userId], references: [id])
-  userId      Int
+  users       User[]
 }
