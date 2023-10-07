@@ -25,7 +25,9 @@ export class UserService {
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     const { password, ...user } = updateUserDto;
-    const hashPassword = await this.crypto.hasher(8, password);
+    const hashPassword = !!password
+      ? await this.crypto.hasher(8, password)
+      : undefined;
     await this.prisma.user.update({
       where: { id },
       data: { ...user, password: hashPassword },
