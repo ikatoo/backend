@@ -58,6 +58,9 @@ jobs:
           NODE_ENV: ci
         run: npm run test
 
+      - name: Prisma db push
+        run: npx prisma db push
+
       - name: Test e2e
         env:
           NODE_ENV: ci
