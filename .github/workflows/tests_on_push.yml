@@ -11,8 +11,8 @@ jobs:
         node: [18]
     env:
       NODE_ENV: ci
-      DATABASE_URL: "postgresql://user:pass@postgres:5432/dbname?schema=public"
-      POSTGRES_HOSTNAME: postgres
+      DATABASE_URL: "postgresql://user:pass@localhost:5432/dbname?schema=public"
+      POSTGRES_HOSTNAME: localhost
       POSTGRES_PASSWORD: pass
       POSTGRES_USER: user
       POSTGRES_DBNAME: dbname
@@ -37,6 +37,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
 
     container:
       image: postgres:14
@@ -54,6 +56,8 @@ jobs:
         run: npm ci
 
       - name: Prisma db push
+        env:
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/dbname?schema=public"
         run: npx prisma db push
 
       - name: Test
