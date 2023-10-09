@@ -14,7 +14,7 @@ jobs:
       DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/dbname?schema=public"
       POSTGRES_HOSTNAME: localhost
       POSTGRES_PASSWORD: testpass
-      POSTGRES_USER: user
+      POSTGRES_USER: testuser
       POSTGRES_DBNAME: dbname
       CLOUDNARY_CLOUDNAME: test
       CLOUDNARY_FOLDER: test
