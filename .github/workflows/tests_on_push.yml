@@ -3,6 +3,7 @@ on: [push, workflow_dispatch]
 
 jobs:
   tests:
+    name: Tests
     runs-on: ubuntu-latest
     container: node:18
     env:
