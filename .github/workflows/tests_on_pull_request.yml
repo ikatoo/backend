@@ -39,9 +39,9 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+      node:
+        image: node:18
 
-    container:
-      image: postgres:14
     steps:
       - uses: actions/checkout@v3
         with:
@@ -54,11 +54,6 @@ jobs:
     
       - name: Install Dependencies
         run: npm ci
-        
-      - name: Prisma db push
-        env:
-          DATABASE_URL: "postgresql://user:pass@localhost:5432/dbname?schema=public"
-        run: npx prisma db push
 
       - name: Test
         env:
