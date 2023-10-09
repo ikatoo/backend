@@ -31,6 +31,7 @@ jobs:
       postgres:
         image: postgres:14
         env:
+          POSTGRES_DBNAME: testuser
           POSTGRES_PASSWORD: postgres
         options: >-
           --health-cmd pg_isready
