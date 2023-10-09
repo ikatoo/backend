@@ -30,3 +30,21 @@ jobs:
         run: npx prisma db push
         env:
           DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres?schema=public"
+
+      - name: Nest Unit Tests
+        run: npm run test
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres?schema=public"
+      
+      - name: Send email when fail tests
+        if: ${{ failure() }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.office365.com
+          server_port: 587
+          username: mckatoo@outlook.com
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Failed tests
+          to: mckatoo@gmail.com
+          from: iKatoo Repository
+          html_body: Tests of the repository <a href="https://github.com/${{github.repository}}/tree/${{github.ref_name}}">${{github.repository}}</a> if failed. Please, verify and fix de code.
