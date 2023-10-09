@@ -11,11 +11,11 @@ jobs:
         node: [18]
     env:
       NODE_ENV: ci
-      DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/testuser?schema=public"
-      POSTGRES_HOSTNAME: localhost
+      DATABASE_URL: "postgresql://postgres:testpass@postgres:5432/postgres?schema=public"
+      POSTGRES_HOSTNAME: postgres
       POSTGRES_PASSWORD: testpass
-      POSTGRES_USER: testuser
-      POSTGRES_DBNAME: testuser
+      POSTGRES_USER: postgres
+      POSTGRES_DBNAME: postgres
       CLOUDNARY_CLOUDNAME: test
       CLOUDNARY_FOLDER: test
       CLOUDNARY_APIKEY: test
