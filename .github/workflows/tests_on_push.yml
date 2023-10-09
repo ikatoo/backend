@@ -54,8 +54,6 @@ jobs:
         run: npm ci
 
       - name: Prisma db push
-        env:
-          DATABASE_URL: "postgresql://user:pass@localhost:5432/dbname?schema=public"
         run: npx prisma db push
 
       - name: Test
