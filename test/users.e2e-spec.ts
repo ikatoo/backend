@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
@@ -33,8 +34,12 @@ describe('UserController (e2e)', () => {
 
   it('/users (GET)', async () => {
     await prisma.user.deleteMany();
-    const user1 = await prisma.user.create({ data: usersMock[0] });
-    const user2 = await prisma.user.create({ data: usersMock[1] });
+    const { password: __, ...user1 } = await prisma.user.create({
+      data: usersMock[0],
+    });
+    const { password: _, ...user2 } = await prisma.user.create({
+      data: usersMock[1],
+    });
 
     const { body, status } = await request(app.getHttpServer()).get('/users');
 
