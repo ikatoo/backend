@@ -1,11 +1,11 @@
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infra/db/prisma/prisma.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
+import { UpdateUserDto } from 'src/modules/user/dto/update-user.dto';
 
 @Injectable()
-export class UserService {
+export class UsersServicePrisma {
   constructor(
     private readonly prisma: PrismaService,
     private readonly crypto: CryptoService,
