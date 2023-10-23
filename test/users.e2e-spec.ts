@@ -3,12 +3,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { PrismaService } from 'src/infra/db/prisma/prisma.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
+import { PgService } from 'src/infra/db/pg/pg.service';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
-  const prisma = new PrismaService();
+  let db: PgService;
   const { compareHash } = new CryptoService();
   const usersMock = [
     {
@@ -29,39 +29,50 @@ describe('UserController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    db = moduleFixture.get<PgService>(PgService);
     await app.init();
+    await db.connect();
+    await db.query('delete from users;');
+  });
+
+  afterEach(async () => {
+    await db.end();
   });
 
   it('/users (GET)', async () => {
-    await prisma.user.deleteMany();
-    const { password: __, ...user1 } = await prisma.user.create({
-      data: usersMock[0],
-    });
-    const { password: _, ...user2 } = await prisma.user.create({
-      data: usersMock[1],
-    });
+    await db.query('insert into users ($1) values $2;', [
+      'name, email, hash_password',
+      usersMock
+        .map((user) => `(${user.name}, ${user.email}, ${user.password})`)
+        .toString(),
+    ]);
 
     const { body, status } = await request(app.getHttpServer()).get('/users');
+    const result = body.map((user) => ({
+      name: user.name,
+      email: user.email,
+      password: user.password,
+    }));
 
     expect(status).toEqual(200);
-    expect(body).toEqual([user1, user2]);
+    expect(result).toEqual(usersMock);
   });
 
   it('/user (POST)', async () => {
-    await prisma.user.deleteMany();
-
     const { body, status } = await request(app.getHttpServer())
       .post('/user')
       .send(usersMock[1]);
 
-    const {
-      id,
-      name,
-      email,
-      password: hash,
-    } = await prisma.user.findUnique({
-      where: { email: usersMock[1].email },
-    });
+    const queryResult = await db.query(
+      `select 
+        id,
+        name,
+        email,
+        hash_password as hash
+      where email = $1;`,
+      [usersMock[1].email],
+    );
+    const { id, name, email, hash } = queryResult.rows[0];
 
     expect(body).toEqual({});
     expect(status).toEqual(201);
@@ -74,15 +85,19 @@ describe('UserController (e2e)', () => {
   });
 
   it('/user (PATCH)', async () => {
-    await prisma.user.deleteMany();
-    const user = await prisma.user.create({ data: usersMock[0] });
+    const queryResult = await db.query(
+      'insert into users($1) values ($2) returning id;',
+      ['name, email, hash_password', Object.values(usersMock[0]).toString()],
+    );
+    const user = queryResult.rows[0];
 
     const { body, status } = await request(app.getHttpServer())
       .patch(`/user/${user.id}`)
       .send({ name: 'Updated User' });
-    const updatedUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
+    const updatedUser = await db.query(
+      'select name, email, hash_password as password from users where id=$1;',
+      [user.id],
+    );
 
     expect(body).toEqual({});
     expect(status).toEqual(204);
@@ -90,13 +105,21 @@ describe('UserController (e2e)', () => {
   });
 
   it('/user (DELETE)', async () => {
-    await prisma.user.deleteMany();
-    const { id } = await prisma.user.create({ data: usersMock[0] });
+    const queryResult = await db.query(
+      'insert into users($1) values ($2) returning id;',
+      ['name, email, hash_password', Object.values(usersMock[0]).toString()],
+    );
+    const { id } = queryResult.rows[0];
 
     const { body, status } = await request(app.getHttpServer()).delete(
       `/user/${id}`,
     );
-    const deletedUser = await prisma.user.findUnique({ where: { id } });
+    const deletedUser = (
+      await db.query(
+        'select name, email, hash_password from users where id=$1',
+        [id],
+      )
+    ).rows[0];
 
     expect(status).toEqual(204);
     expect(body).toEqual({});

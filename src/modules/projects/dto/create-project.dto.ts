@@ -2,7 +2,7 @@ export type CreateProjectDto = {
   title: string;
   description: string;
   snapshot: string;
-  githubLink: string;
+  repositoryLink: string;
   lastUpdate: Date;
   userId: number;
 };
