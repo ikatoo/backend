@@ -11,7 +11,8 @@ CREATE TABLE "public"."about_pages" (
     "illustration_url" character varying,
     "illustration_alt" character varying,
     "user_id" integer NOT NULL,
-    CONSTRAINT "about_pages_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "about_pages_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "about_pages_user_id" UNIQUE ("user_id")
 ) WITH (oids = false);
 
 
@@ -26,7 +27,8 @@ CREATE TABLE "public"."contacts_page" (
     "localization" point NOT NULL,
     "email" character varying NOT NULL,
     "user_id" integer NOT NULL,
-    CONSTRAINT "contacts_page_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "contacts_page_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "contacts_page_user_id" UNIQUE ("user_id")
 ) WITH (oids = false);
 
 
@@ -64,7 +66,8 @@ CREATE SEQUENCE skills_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1
 CREATE TABLE "public"."skills" (
     "id" integer DEFAULT nextval('skills_id_seq') NOT NULL,
     "title" character varying NOT NULL,
-    CONSTRAINT "skills_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "skills_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "skills_title" UNIQUE ("title")
 ) WITH (oids = false);
 
 
@@ -89,7 +92,8 @@ CREATE TABLE "public"."skills_page" (
     "title" character varying NOT NULL,
     "description" character varying NOT NULL,
     "user_id" integer NOT NULL,
-    CONSTRAINT "skills_page_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "skills_page_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "skills_page_user_id" UNIQUE ("user_id")
 ) WITH (oids = false);
 
 
@@ -100,6 +104,7 @@ CREATE SEQUENCE token_blacklist_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 214748364
 CREATE TABLE "public"."token_blacklist" (
     "id" integer DEFAULT nextval('token_blacklist_id_seq') NOT NULL,
     "code" character varying NOT NULL,
+    CONSTRAINT "token_blacklist_code" UNIQUE ("code"),
     CONSTRAINT "token_blacklist_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
@@ -129,4 +134,4 @@ ALTER TABLE ONLY "public"."skills_on_users" ADD CONSTRAINT "skills_on_users_user
 
 ALTER TABLE ONLY "public"."skills_page" ADD CONSTRAINT "skills_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
--- 2023-10-23 13:47:24.31614+00
+-- 2023-10-23 16:40:42.251427+00
