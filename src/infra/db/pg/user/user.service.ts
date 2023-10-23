@@ -1,46 +1,71 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/infra/db/prisma/prisma.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import { IUserService } from 'src/modules/user/IUserService';
 import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
 import { UpdateUserDto } from 'src/modules/user/dto/update-user.dto';
+import { PgService } from '../pg.service';
+import { Client } from 'pg';
 
 @Injectable()
 export class UserServicePg implements IUserService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: PgService,
     private readonly crypto: CryptoService,
-  ) {}
+    private pgClient: Client,
+  ) {
+    (async () => {
+      pgClient = await db.getClient();
+    })();
+  }
 
   async listAll() {
-    const users = await this.prisma.user.findMany({});
-    return users.map((user) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...rest } = user;
-      return rest;
-    });
+    await this.pgClient.connect();
+    const users = (
+      await this.pgClient.query('select id, name, email from users;')
+    ).rows;
+    await this.pgClient.end();
+
+    return users;
   }
 
   async create(createUserDto: CreateUserDto) {
-    const { password, ...user } = createUserDto;
+    await this.pgClient.connect();
+
+    const { password, name, email } = createUserDto;
     const hashPassword = await this.crypto.hasher(8, password);
-    await this.prisma.user.create({
-      data: { ...user, password: hashPassword },
-    });
+    await this.pgClient.query(
+      'insert into users(name, email, hash_password) values ($1, $2, $3)',
+      [name, email, hashPassword],
+    );
+
+    await this.pgClient.end();
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const { password, ...user } = updateUserDto;
-    const hashPassword = !!password
-      ? await this.crypto.hasher(8, password)
-      : undefined;
-    await this.prisma.user.update({
-      where: { id },
-      data: { ...user, password: hashPassword },
-    });
+    await this.pgClient.connect();
+
+    const user = updateUserDto;
+    if (!!user.password) {
+      user.password = await this.crypto.hasher(8, user.password);
+    }
+
+    const fields = Object.keys(user).toString();
+    const values = Object.values(user).toString();
+
+    await this.pgClient.query('update users set ($1) = ($2) where id = $3;', [
+      fields,
+      values,
+      id,
+    ]);
+
+    await this.pgClient.end();
   }
 
   async remove(id: number) {
-    await this.prisma.user.delete({ where: { id } });
+    if (!id) return;
+
+    await this.pgClient.connect();
+    await this.pgClient.query('delete from users where id = $1', [id]);
+    await this.pgClient.end();
   }
 }
