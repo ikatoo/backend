@@ -6,7 +6,7 @@ import { UpdateUserDto } from 'src/modules/user/dto/update-user.dto';
 import { PgService } from '../pg.service';
 
 @Injectable()
-export class UserServicePg implements IUserService {
+export class UsersServicePg implements IUserService {
   constructor(
     private readonly db: PgService,
     private readonly crypto: CryptoService,

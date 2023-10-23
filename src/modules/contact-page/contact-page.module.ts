@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ContactPageService } from './contact-page.service';
+import { PgService } from 'src/infra/db/pg/pg.service';
 import { ContactPageController } from './contact-page.controller';
-import { PrismaService } from '../../infra/db/prisma/prisma.service';
+import { ContactPageService } from './contact-page.service';
 
 @Module({
   controllers: [ContactPageController],
-  providers: [ContactPageService, PrismaService],
+  providers: [ContactPageService, PgService],
 })
 export class ContactPageModule {}

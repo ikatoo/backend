@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AboutPageService } from './about-page.service';
+import { PgService } from 'src/infra/db/pg/pg.service';
 import { AboutPageController } from './about-page.controller';
-import { PrismaService } from '../../infra/db/prisma/prisma.service';
+import { AboutPageService } from './about-page.service';
 
 @Module({
   controllers: [AboutPageController],
-  providers: [AboutPageService, PrismaService],
+  providers: [AboutPageService, PgService],
 })
 export class AboutPageModule {}
