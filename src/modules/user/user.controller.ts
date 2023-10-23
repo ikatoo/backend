@@ -7,13 +7,13 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { UserServicePrisma } from 'src/infra/db/prisma/user/user.service';
+import { UsersServicePg } from 'src/infra/db/pg/user/user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserServicePrisma) {}
+  constructor(private readonly userService: UsersServicePg) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {

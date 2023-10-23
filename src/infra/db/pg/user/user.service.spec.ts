@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import { PgService } from '../pg.service';
-import { UserServicePg } from './user.service';
+import { UsersServicePg } from './user.service';
 
 describe('UserService', () => {
-  let service: UserServicePg;
+  let service: UsersServicePg;
   // let pgClient: PgService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserServicePg, PgService, CryptoService],
+      providers: [UsersServicePg, PgService, CryptoService],
     }).compile();
 
-    service = module.get<UserServicePg>(UserServicePg);
+    service = module.get<UsersServicePg>(UsersServicePg);
     // pgClient = module.get<PgService>(PgService);
   });
 
@@ -25,7 +25,7 @@ describe('UserService', () => {
       service.create({
         name: 'Tetste',
         email: 'asdf@asdf.com',
-        password: 'asjdf',
+        password: 'asldfjasdf',
       }),
     ).resolves.not.toThrowError();
   });

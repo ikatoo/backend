@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from './user.controller';
-import { UsersServicePrisma } from './user.service';
-import { PrismaService } from 'src/infra/db/prisma/prisma.service';
+import { PgService } from 'src/infra/db/pg/pg.service';
+import { UsersServicePg } from 'src/infra/db/pg/user/user.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
+import { UserController } from './user.controller';
 
 describe('UserController', () => {
   let controller: UserController;
@@ -10,7 +10,7 @@ describe('UserController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
-      providers: [UsersServicePrisma, PrismaService, CryptoService],
+      providers: [UsersServicePg, PgService, CryptoService],
     }).compile();
 
     controller = module.get<UserController>(UserController);

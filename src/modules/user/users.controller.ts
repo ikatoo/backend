@@ -1,9 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
-import { UserServicePrisma } from 'src/infra/db/prisma/user/user.service';
+import { UsersServicePg } from 'src/infra/db/pg/user/user.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly userService: UserServicePrisma) {}
+  constructor(private readonly userService: UsersServicePg) {}
 
   @Get()
   listAll() {
