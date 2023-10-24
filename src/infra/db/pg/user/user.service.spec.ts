@@ -1,19 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
-import { PgService } from '../pg.service';
+import { DbModule } from '../db.module';
 import { UsersServicePg } from './user.service';
 
 describe('UserService', () => {
   let service: UsersServicePg;
-  // let pgClient: PgService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersServicePg, PgService, CryptoService],
+      imports: [DbModule],
+      providers: [UsersServicePg, CryptoService],
     }).compile();
 
     service = module.get<UsersServicePg>(UsersServicePg);
-    // pgClient = module.get<PgService>(PgService);
   });
 
   it('should be defined', () => {

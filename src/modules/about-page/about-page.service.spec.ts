@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PgService } from 'src/infra/db/pg/pg.service';
+import { DbModule } from 'src/infra/db/pg/db.module';
 import { AboutPageService } from './about-page.service';
 
 describe('AboutPageService', () => {
@@ -7,7 +7,8 @@ describe('AboutPageService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AboutPageService, PgService],
+      imports: [DbModule],
+      providers: [AboutPageService],
     }).compile();
 
     service = module.get<AboutPageService>(AboutPageService);
