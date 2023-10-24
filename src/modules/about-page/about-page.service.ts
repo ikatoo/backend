@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { Client } from 'pg';
 import { CreateAboutPageDto } from './dto/create-about-page.dto';
 import { UpdateAboutPageDto } from './dto/update-about-page.dto';
-import { PgService } from 'src/infra/db/pg/pg.service';
 
 @Injectable()
 export class AboutPageService {
-  constructor(private readonly db: PgService) {}
+  constructor(
+    @Inject('PG_CONNECTION')
+    private db: Client,
+  ) {}
 
   async create(createAboutPageDto: CreateAboutPageDto) {
     await this.db.connect();
