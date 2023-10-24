@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PgService } from 'src/infra/db/pg/pg.service';
+import { DbModule } from 'src/infra/db/pg/db.module';
 import { ContactPageService } from './contact-page.service';
 
 describe('ContactPageService', () => {
@@ -7,7 +7,8 @@ describe('ContactPageService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ContactPageService, PgService],
+      imports: [DbModule],
+      providers: [ContactPageService],
     }).compile();
 
     service = module.get<ContactPageService>(ContactPageService);

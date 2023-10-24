@@ -1,14 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Client } from 'pg';
+import { env } from 'process';
+import { DbModule } from 'src/infra/db/pg/db.module';
+import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { CryptoService } from 'src/infra/security/crypto/crypto.service';
-import { PgService } from 'src/infra/db/pg/pg.service';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
-  let db: PgService;
+  const db = new Client({
+    host: env.POSTGRES_HOSTNAME,
+    database: env.POSTGRES_DBNAME,
+    port: +env.POSTGRES_PORT,
+    password: env.POSTGRES_PASSWORD,
+    user: env.POSTGRES_USER,
+  });
   const { compareHash } = new CryptoService();
   const usersMock = [
     {
@@ -25,18 +33,12 @@ describe('UserController (e2e)', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AppModule, DbModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    db = moduleFixture.get<PgService>(PgService);
     await app.init();
-    await db.connect();
     await db.query('delete from users;');
-  });
-
-  afterEach(async () => {
-    await db.end();
   });
 
   it('/users (GET)', async () => {
