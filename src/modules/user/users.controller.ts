@@ -1,9 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
-import { UsersServicePg } from 'src/infra/db/pg/user/user.service';
+import { UsersService } from './user.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly userService: UsersServicePg) {}
+  constructor(private readonly userService: UsersService) {}
 
   @Get()
   listAll() {

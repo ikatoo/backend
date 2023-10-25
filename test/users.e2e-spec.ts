@@ -2,11 +2,13 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
+  let pgp: PgPromiseService;
   const { compareHash } = new CryptoService();
   const usersMock = [
     {
@@ -27,8 +29,9 @@ describe('UserController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    pgp = moduleFixture.get<PgPromiseService>(PgPromiseService);
     await app.init();
-    await db.none('delete from users;');
+    await pgp.db.none('delete from users;');
   });
 
   it('/users (GET)', async () => {
@@ -37,9 +40,9 @@ describe('UserController (e2e)', () => {
         .map((user) => `('${user.name}', '${user.email}', '${user.password}')`)
         .toString(),
     ];
-    await db.none('insert into users(name, email, hash_password) values$1', [
-      values,
-    ]);
+    await pgp.db.none(
+      `insert into users(name, email, hash_password) values${values}`,
+    );
 
     const { body, status } = await request(app.getHttpServer()).get('/users');
     const result = body.map((user) => ({
@@ -60,7 +63,7 @@ describe('UserController (e2e)', () => {
       .post('/user')
       .send(usersMock[1]);
 
-    const user = await db.oneOrNone(
+    const user = await pgp.db.oneOrNone(
       'select id, name, email, hash_password as hash from users where email=$1;',
       [usersMock[1].email],
     );
@@ -76,50 +79,46 @@ describe('UserController (e2e)', () => {
     expect(await compareHash(usersMock[1].password, hash)).toBeTruthy();
   });
 
-  it.only('/user (PATCH)', async () => {
+  it('/user (PATCH)', async () => {
     const values = Object.values(usersMock[0]).map((value) => `'${value}'`);
-    const rows = await db.manyOrNone(
-      "insert into users(name, email, hash_password) values('$1', '$2', '$3') returning id;",
-      [usersMock[0].name, usersMock[0].email, usersMock[0].password],
+    const { id: userId } = await pgp.db.oneOrNone(
+      `insert into users(name, email, hash_password) values(${values}) returning id;`,
     );
-    // const queryTransaction = `
-    //   insert into users(name, email, hash_password)
-    //   values(${values})
-    //   returning id;`;
-    // const rows = await transaction(queryTransaction);
-    // const user = rows[0];
 
-    // const { body, status } = await request(app.getHttpServer())
-    //   .patch(`/user/${user.id}`)
-    //   .send({ name: 'Updated User' });
-    // const updatedUser = (
-    //   await query(
-    //     'select name, email, hash_password as password from users where id=$1;',
-    //     [user.id],
-    //   )
-    // )[0];
+    const { body, status } = await request(app.getHttpServer())
+      .patch(`/user/${userId}`)
+      .send({ name: 'Updated User' });
+    const { hash, ...updatedUser } = await pgp.db.oneOrNone(
+      'select id, name, email, hash_password as hash from users where id=$1;',
+      [userId],
+    );
 
-    // expect(body).toEqual({});
-    // expect(status).toEqual(204);
-    // expect(updatedUser).toEqual({ ...user, name: 'Updated User' });
+    expect(body).toEqual({});
+    expect(status).toEqual(204);
+    expect(updatedUser).toEqual({
+      id: userId,
+      name: 'Updated User',
+      email: usersMock[0].email,
+    });
   });
 
   it('/user (DELETE)', async () => {
-    const user = await db.oneOrNone(
-      'insert into users($1) values ($2) returning id;',
-      ['name, email, hash_password', Object.values(usersMock[0]).toString()],
+    const values = Object.values(usersMock[0])
+      .map((value) => `'${value}'`)
+      .toString();
+    const user = await pgp.db.oneOrNone(
+      'insert into users($1:raw) values ($2:raw) returning id;',
+      ['name, email, hash_password', values],
     );
     const { id } = user;
 
     const { body, status } = await request(app.getHttpServer()).delete(
       `/user/${id}`,
     );
-    const deletedUser = (
-      await db.oneOrNone({
-        text: 'select name, email, hash_password from users where id=$1',
-        values: [id],
-      })
-    )[0];
+    const deletedUser = await pgp.db.oneOrNone({
+      text: 'select name, email, hash_password from users where id=$1',
+      values: [id],
+    });
 
     expect(status).toEqual(204);
     expect(body).toEqual({});
