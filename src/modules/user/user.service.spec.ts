@@ -1,24 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NestPgpromiseModule } from 'nestjs-pgpromise';
-import config from 'src/infra/db/pg/config';
+import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import { UsersService } from './user.service';
 
 describe('UserService', () => {
   let service: UsersService;
+  // let pgp: PgPromiseService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        NestPgpromiseModule.register({
-          isGlobal: false,
-          connection: config,
-        }),
-      ],
-      providers: [UsersService, CryptoService],
+      providers: [UsersService, CryptoService, PgPromiseService],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
+    // pgp = module.get<PgPromiseService>(PgPromiseService);
   });
 
   it('should be defined', () => {
