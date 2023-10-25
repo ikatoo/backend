@@ -6,6 +6,7 @@ import { UsersService } from './user.service';
 describe('UserService', () => {
   let userService: UsersService;
   let pgp: PgPromiseService;
+  const crypto = new CryptoService();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -14,6 +15,7 @@ describe('UserService', () => {
 
     userService = module.get<UsersService>(UsersService);
     pgp = module.get<PgPromiseService>(PgPromiseService);
+    pgp.db.none('delete from users;');
   });
 
   it('should be defined', () => {
@@ -21,10 +23,21 @@ describe('UserService', () => {
   });
 
   it('should create a user without error', async () => {
-    await userService.create({
+    const mockedUser = {
       name: 'Tetste',
       email: 'asdf@asdf.com',
       password: 'asldfjasdf',
-    });
+    };
+    await userService.create(mockedUser);
+
+    const { id, hash_password, ...createdUser } = await pgp.db.oneOrNone(
+      'select * from users where email=$1',
+      [mockedUser.email],
+    );
+    const { password, ...expected } = mockedUser;
+
+    expect(createdUser).toEqual(expected);
+    expect(await crypto.compareHash(password, hash_password)).toBeTruthy();
+    expect(id).toBeGreaterThan(0);
   });
 });
