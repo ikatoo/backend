@@ -4,9 +4,14 @@ import config from './config';
 
 @Injectable()
 export class PgPromiseService {
+  private pgp = pgPromise({});
+
+  constructor() {
+    if (!this.db) this.db = this.pgp(config);
+  }
+
   async onModuleInit() {
-    const pgp = pgPromise({});
-    if (!this.db) this.db = pgp(config);
+    if (!this.db) this.db = this.pgp(config);
   }
 
   db: IDatabase<any>;
