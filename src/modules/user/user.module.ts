@@ -1,13 +1,19 @@
 import { Module } from '@nestjs/common';
-import { DbModule } from 'src/infra/db/pg/db.module';
-import { UsersServicePg } from 'src/infra/db/pg/user/user.service';
+import { NestPgpromiseModule } from 'nestjs-pgpromise';
+import config from 'src/infra/db/pg/config';
 import { CryptoService } from '../../infra/security/crypto/crypto.service';
 import { UserController } from './user.controller';
+import { UsersService } from './user.service';
 import { UsersController } from './users.controller';
 
 @Module({
-  imports: [DbModule],
+  imports: [
+    NestPgpromiseModule.register({
+      isGlobal: false,
+      connection: config,
+    }),
+  ],
   controllers: [UserController, UsersController],
-  providers: [UsersServicePg, CryptoService],
+  providers: [UsersService, CryptoService],
 })
 export class UserModule {}

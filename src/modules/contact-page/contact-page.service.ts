@@ -1,34 +1,28 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Client } from 'pg';
+import { NEST_PGPROMISE_CONNECTION } from 'nestjs-pgpromise';
+import { IDatabase } from 'pg-promise';
 import { CreateContactPageDto } from './dto/create-contact-page.dto';
 import { UpdateContactPageDto } from './dto/update-contact-page.dto';
 
 @Injectable()
 export class ContactPageService {
   constructor(
-    @Inject('PG_CONNECTION')
-    private db: Client,
+    @Inject(NEST_PGPROMISE_CONNECTION) private readonly db: IDatabase<any>,
   ) {}
 
   async create(createContactPageDto: CreateContactPageDto) {
-    await this.db.connect();
-
     const fields = Object.keys(createContactPageDto)
       .toString()
       .replace('userId', 'user_id');
     const values = Object.values(createContactPageDto).toString();
-    await this.db.query('insert into contacts_page($1) values ($2);', [
+    await this.db.none('insert into contacts_page($1) values ($2);', [
       fields,
       values,
     ]);
-
-    await this.db.end();
   }
 
   async findByUser(userId: number) {
-    await this.db.connect();
-
-    const result = await this.db.query(
+    const page = await this.db.oneOrNone(
       `select
           id,
           title,
@@ -39,33 +33,22 @@ export class ContactPageService {
         where user_id=$1`,
       [userId],
     );
-    const page = result.rows[0];
-
-    await this.db.end();
 
     return page;
   }
 
   async update(userId: number, updateContactPageDto: UpdateContactPageDto) {
-    await this.db.connect();
-
     const fields = Object.keys(updateContactPageDto)
       .toString()
       .replace('userId', 'user_id');
     const values = Object.values(updateContactPageDto).toString();
-    await this.db.query(
+    await this.db.none(
       'update contacts_page set ($1) = ($2) where user_id = $3;',
       [fields, values, userId],
     );
-
-    await this.db.end();
   }
 
   async remove(userId: number) {
-    await this.db.connect();
-
-    await this.db.query('delete from contacts_page where user_id=$1', [userId]);
-
-    await this.db.end();
+    await this.db.none('delete from contacts_page where user_id=$1', [userId]);
   }
 }
