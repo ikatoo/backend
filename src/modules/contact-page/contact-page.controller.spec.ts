@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NestPgpromiseModule } from 'nestjs-pgpromise';
-import config from 'src/infra/db/pg/config';
+import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { ContactPageController } from './contact-page.controller';
 import { ContactPageService } from './contact-page.service';
 
@@ -9,14 +8,8 @@ describe('ContactPageController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        NestPgpromiseModule.register({
-          isGlobal: false,
-          connection: config,
-        }),
-      ],
       controllers: [ContactPageController],
-      providers: [ContactPageService],
+      providers: [ContactPageService, PgPromiseService],
     }).compile();
 
     controller = module.get<ContactPageController>(ContactPageController);

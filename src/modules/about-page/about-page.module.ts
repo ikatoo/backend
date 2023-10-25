@@ -1,17 +1,10 @@
 import { Module } from '@nestjs/common';
-import { NestPgpromiseModule } from 'nestjs-pgpromise';
-import config from 'src/infra/db/pg/config';
+import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { AboutPageController } from './about-page.controller';
 import { AboutPageService } from './about-page.service';
 
 @Module({
-  imports: [
-    NestPgpromiseModule.register({
-      isGlobal: false,
-      connection: config,
-    }),
-  ],
   controllers: [AboutPageController],
-  providers: [AboutPageService],
+  providers: [AboutPageService, PgPromiseService],
 })
 export class AboutPageModule {}

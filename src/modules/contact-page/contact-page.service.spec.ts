@@ -1,20 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { ContactPageService } from './contact-page.service';
-import { NestPgpromiseModule } from 'nestjs-pgpromise';
-import config from 'src/infra/db/pg/config';
 
 describe('ContactPageService', () => {
   let service: ContactPageService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        NestPgpromiseModule.register({
-          isGlobal: false,
-          connection: config,
-        }),
-      ],
-      providers: [ContactPageService],
+      providers: [ContactPageService, PgPromiseService],
     }).compile();
 
     service = module.get<ContactPageService>(ContactPageService);

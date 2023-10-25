@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NestPgpromiseModule } from 'nestjs-pgpromise';
-import config from 'src/infra/db/pg/config';
+import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { AboutPageService } from './about-page.service';
 
 describe('AboutPageService', () => {
@@ -8,13 +7,7 @@ describe('AboutPageService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        NestPgpromiseModule.register({
-          isGlobal: false,
-          connection: config,
-        }),
-      ],
-      providers: [AboutPageService],
+      providers: [AboutPageService, PgPromiseService],
     }).compile();
 
     service = module.get<AboutPageService>(AboutPageService);
