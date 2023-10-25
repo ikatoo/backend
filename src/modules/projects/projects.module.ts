@@ -1,11 +1,17 @@
 import { Module } from '@nestjs/common';
-import { DbModule } from 'src/infra/db/pg/db.module';
 import { ProjectController } from './project.controller';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
+import { NestPgpromiseModule } from 'nestjs-pgpromise';
+import config from 'src/infra/db/pg/config';
 
 @Module({
-  imports: [DbModule],
+  imports: [
+    NestPgpromiseModule.register({
+      isGlobal: false,
+      connection: config,
+    }),
+  ],
   controllers: [ProjectsController, ProjectController],
   providers: [ProjectsService],
 })
