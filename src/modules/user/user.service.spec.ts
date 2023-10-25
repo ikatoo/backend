@@ -48,20 +48,37 @@ describe('UserService', () => {
   it('shoud update user', async () => {
     const testId = randomBytes(4).toString('hex');
     const mockedUser = {
-      name: 'Tetste',
-      email: 'asdf@asdf.com',
-      password: 'asldfjasdf',
+      name: `${testId}Tetste`,
+      email: `${testId}asdf@asdf.com`,
+      password: `${testId}asldfjasdf`,
     };
-    const newValues = { name: '_new_name', password: '_new_password' };
     const { id } = await db.oneOrNone(
       'insert into users values(default, $1:raw) returning id',
       [
         Object.values(mockedUser)
-          .map((value) => `'${testId + value}'`)
+          .map((value) => `'${value}'`)
           .toString(),
       ],
     );
 
+    const newValues = { name: '_new_name', password: '_new_password' };
     await userService.update(id, newValues);
+
+    const { hash_password, ...updatedUser } = await db.oneOrNone(
+      'select * from users where id=$1',
+      [id],
+    );
+
+    expect(updatedUser).toEqual({
+      id,
+      name: newValues.name,
+      email: mockedUser.email,
+    });
+    expect(
+      await crypto.compareHash(mockedUser.password, hash_password),
+    ).toBeFalsy();
+    expect(
+      await crypto.compareHash(newValues.password, hash_password),
+    ).toBeTruthy();
   });
 });
