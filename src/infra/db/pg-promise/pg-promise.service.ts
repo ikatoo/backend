@@ -1,18 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import pgPromise, { IDatabase } from 'pg-promise';
 import config from './config';
 
 @Injectable()
-export class PgPromiseService {
-  private pgp = pgPromise({});
+export class PgPromiseService implements OnModuleInit {
+  private connect() {
+    const pgp = pgPromise({});
 
-  constructor() {
-    if (!this.db) this.db = this.pgp(config);
-  }
+    if (!global.PG_PROMISE_DB) {
+      global.PG_PROMISE_DB = pgp(config);
+    }
 
-  async onModuleInit() {
-    if (!this.db) this.db = this.pgp(config);
+    this.db = global.PG_PROMISE_DB;
   }
 
   db: IDatabase<any>;
+
+  constructor() {
+    this.connect();
+  }
+  onModuleInit() {
+    this.connect();
+  }
 }

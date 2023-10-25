@@ -1,15 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { NEST_PGPROMISE_CONNECTION } from 'nestjs-pgpromise';
-import { IDatabase } from 'pg-promise';
+import { Injectable } from '@nestjs/common';
+import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
 export class ProjectsService {
-  constructor(
-    @Inject(NEST_PGPROMISE_CONNECTION)
-    private db: IDatabase<any>,
-  ) {}
+  constructor(private readonly pgp: PgPromiseService) {}
 
   async create(createProjectDto: CreateProjectDto) {
     const project = {
@@ -23,18 +19,18 @@ export class ProjectsService {
 
     const fields = Object.keys(project).toString();
     const values = Object.values(project).toString();
-    const { id: projectId } = await this.db.oneOrNone(
+    const { id: projectId } = await this.pgp.db.oneOrNone(
       'insert into projects($1) values ($2) returning id as projectId;',
       [fields, values],
     );
-    await this.db.none(
+    await this.pgp.db.none(
       'insert into projects_on_users(project_id, user_id) values ($1, $2);',
       [projectId, createProjectDto.userId],
     );
   }
 
   async listAll() {
-    const projects = await this.db.manyOrNone(`
+    const projects = await this.pgp.db.manyOrNone(`
       select 
         id,
         title,
@@ -48,7 +44,7 @@ export class ProjectsService {
   }
 
   async findByUser(userId: number) {
-    const projects = await this.db.manyOrNone(
+    const projects = await this.pgp.db.manyOrNone(
       `
         select 
           projects.id,
@@ -69,7 +65,7 @@ export class ProjectsService {
   }
 
   async findByTitle(partialTitle: string) {
-    const projects = await this.db.manyOrNone(
+    const projects = await this.pgp.db.manyOrNone(
       `
         select 
           id,
@@ -97,7 +93,7 @@ export class ProjectsService {
       .replace('lastUpdate', 'last_update');
     const values = Object.values(updateProjectDto);
 
-    await this.db.none(
+    await this.pgp.db.none(
       `
         update projects set ($1) = ($2) 
         where id=$3;
@@ -108,6 +104,6 @@ export class ProjectsService {
 
   async remove(id: number) {
     if (!id) return;
-    await this.db.none('delete from projects where id=$1', [id]);
+    await this.pgp.db.none('delete from projects where id=$1', [id]);
   }
 }
