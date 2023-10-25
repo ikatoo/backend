@@ -1,27 +1,24 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { NEST_PGPROMISE_CONNECTION } from 'nestjs-pgpromise';
-import { IDatabase } from 'pg-promise';
+import { Injectable } from '@nestjs/common';
+import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CreateAboutPageDto } from './dto/create-about-page.dto';
 import { UpdateAboutPageDto } from './dto/update-about-page.dto';
 
 @Injectable()
 export class AboutPageService {
-  constructor(
-    @Inject(NEST_PGPROMISE_CONNECTION) private readonly db: IDatabase<any>,
-  ) {}
+  constructor(private readonly pgp: PgPromiseService) {}
 
   async create(createAboutPageDto: CreateAboutPageDto) {
     const fields = Object.keys(createAboutPageDto).toString();
     const values = Object.values(createAboutPageDto).toString();
 
-    await this.db.none('insert into about_pages($1) values ($2);', [
+    await this.pgp.db.none('insert into about_pages($1) values ($2);', [
       fields,
       values,
     ]);
   }
 
   async findByUser(userId: number) {
-    const page = await this.db.oneOrNone(
+    const page = await this.pgp.db.oneOrNone(
       'select * from about_pages where user_id = $1',
       [userId],
     );
@@ -38,13 +35,15 @@ export class AboutPageService {
 
     const fields = Object.keys(updateAboutPageDto).toString();
     const values = Object.values(updateAboutPageDto).toString();
-    await this.db.none(
+    await this.pgp.db.none(
       'update about_pages set ($1) = ($2) where user_id = $3;',
       [fields, values, userId],
     );
   }
 
   async remove(userId: number) {
-    await this.db.none('delete from about_pages where user_id = $1', [userId]);
+    await this.pgp.db.none('delete from about_pages where user_id = $1', [
+      userId,
+    ]);
   }
 }
