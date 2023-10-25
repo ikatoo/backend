@@ -1,10 +1,16 @@
 import { Module } from '@nestjs/common';
-import { DbModule } from 'src/infra/db/pg/db.module';
+import { NestPgpromiseModule } from 'nestjs-pgpromise';
+import config from 'src/infra/db/pg/config';
 import { ContactPageController } from './contact-page.controller';
 import { ContactPageService } from './contact-page.service';
 
 @Module({
-  imports: [DbModule],
+  imports: [
+    NestPgpromiseModule.register({
+      isGlobal: false,
+      connection: config,
+    }),
+  ],
   controllers: [ContactPageController],
   providers: [ContactPageService],
 })

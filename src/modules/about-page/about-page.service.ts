@@ -1,37 +1,30 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Client } from 'pg';
+import { NEST_PGPROMISE_CONNECTION } from 'nestjs-pgpromise';
+import { IDatabase } from 'pg-promise';
 import { CreateAboutPageDto } from './dto/create-about-page.dto';
 import { UpdateAboutPageDto } from './dto/update-about-page.dto';
 
 @Injectable()
 export class AboutPageService {
   constructor(
-    @Inject('PG_CONNECTION')
-    private db: Client,
+    @Inject(NEST_PGPROMISE_CONNECTION) private readonly db: IDatabase<any>,
   ) {}
 
   async create(createAboutPageDto: CreateAboutPageDto) {
-    await this.db.connect();
-
     const fields = Object.keys(createAboutPageDto).toString();
     const values = Object.values(createAboutPageDto).toString();
 
-    await this.db.query('insert into about_pages($1) values ($2);', [
+    await this.db.none('insert into about_pages($1) values ($2);', [
       fields,
       values,
     ]);
-
-    await this.db.end();
   }
 
   async findByUser(userId: number) {
-    await this.db.connect();
-    const result = await this.db.query(
+    const page = await this.db.oneOrNone(
       'select * from about_pages where user_id = $1',
       [userId],
     );
-    const page = result.rows[0];
-    await this.db.end();
 
     return {
       illustrationUrl: page.illustration_url,
@@ -42,23 +35,16 @@ export class AboutPageService {
 
   async update(userId: number, updateAboutPageDto: UpdateAboutPageDto) {
     if (!userId) return;
-    await this.db.connect();
 
     const fields = Object.keys(updateAboutPageDto).toString();
     const values = Object.values(updateAboutPageDto).toString();
-    await this.db.query(
+    await this.db.none(
       'update about_pages set ($1) = ($2) where user_id = $3;',
       [fields, values, userId],
     );
-
-    await this.db.end();
   }
 
   async remove(userId: number) {
-    await this.db.connect();
-
-    await this.db.query('delete from about_pages where user_id = $1', [userId]);
-
-    await this.db.end();
+    await this.db.none('delete from about_pages where user_id = $1', [userId]);
   }
 }
