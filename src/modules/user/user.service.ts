@@ -30,17 +30,16 @@ export class UsersService implements IUserService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = updateUserDto;
-    if (!!user.password) {
-      user.password = await this.crypto.hasher(8, user.password);
-    }
+    const { password, ...user } = updateUserDto;
+    const hash_password = !password
+      ? undefined
+      : await this.crypto.hasher(8, password);
 
-    const fields = Object.keys(user);
+    const fields = Object.keys({ ...user, hash_password });
     const values = Object.values(user);
     const fieldsValues = fields
       .map((field, index) => `${field}='${values[index]}'`)
       .toString();
-    console.log('fieldsValues ====', fieldsValues);
     await this.pgp.db.none('update users set $1:raw where id=$2;', [
       fieldsValues,
       id,
