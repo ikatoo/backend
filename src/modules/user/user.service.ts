@@ -30,12 +30,12 @@ export class UsersService implements IUserService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const { password, ...user } = updateUserDto;
-    const hash_password = !password
-      ? undefined
-      : await this.crypto.hasher(8, password);
-
-    const fields = Object.keys({ ...user, hash_password });
+    const user = { ...updateUserDto };
+    if (!!user.password) {
+      user.hash_password = await this.crypto.hasher(8, user.password);
+      delete user.password;
+    }
+    const fields = Object.keys(user);
     const values = Object.values(user);
     const fieldsValues = fields
       .map((field, index) => `${field}='${values[index]}'`)
