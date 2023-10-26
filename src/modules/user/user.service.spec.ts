@@ -81,4 +81,29 @@ describe('UserService', () => {
       await crypto.compareHash(newValues.password, hash_password),
     ).toBeTruthy();
   });
+
+  it('should delete user', async () => {
+    const mockedUsers = Array.from({ length: 4 }, (_, i) => ({
+      name: `User ${i}`,
+      email: `email${i}@teste.com`,
+      password: `pass${i}`,
+    }));
+    const values = mockedUsers
+      .map((user) => `('${user.name}', '${user.email}', '${user.password}')`)
+      .toString();
+    await pgp.db.none(
+      'insert into users(name, email, hash_password) values$1:raw',
+      [values],
+    );
+    const user = await pgp.db.one('select * from users where email=$1;', [
+      mockedUsers[2].email,
+    ]);
+    await userService.remove(user.id);
+    const deletedUser = await pgp.db.oneOrNone(
+      'select * from users where email=$1;',
+      [mockedUsers[2].email],
+    );
+
+    expect(deletedUser).toBeNull();
+  });
 });
