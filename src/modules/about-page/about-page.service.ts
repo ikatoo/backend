@@ -17,6 +17,23 @@ export class AboutPageService {
     ]);
   }
 
+  async getPage() {
+    const aboutPage = await this.pgp.db.oneOrNone(
+      'select * from about_pages limit 1;',
+    );
+    const skills = await this.pgp.db.manyOrNone(
+      `select title from skills, skills_on_users 
+      where 
+        skills.id=skills_on_users.skill_id
+      and
+        skills_on_users.user_id=$1;`,
+      [aboutPage.user_id],
+    );
+    const page = { ...aboutPage, skills };
+
+    return page;
+  }
+
   async findByUser(userId: number) {
     const page = await this.pgp.db.oneOrNone(
       'select * from about_pages where user_id = $1',
