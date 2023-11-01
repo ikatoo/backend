@@ -12,7 +12,7 @@ export class ContactPageService {
       .toString()
       .replace('userId', 'user_id');
     const values = Object.values(createContactPageDto).toString();
-    await this.pgp.db.none('insert into contacts_page($1) values ($2);', [
+    await this.pgp.db.none('insert into contact_pages($1) values ($2);', [
       fields,
       values,
     ]);
@@ -40,13 +40,13 @@ export class ContactPageService {
       .replace('userId', 'user_id');
     const values = Object.values(updateContactPageDto).toString();
     await this.pgp.db.none(
-      'update contacts_page set ($1) = ($2) where user_id = $3;',
+      'update contact_pages set ($1) = ($2) where user_id = $3;',
       [fields, values, userId],
     );
   }
 
   async remove(userId: number) {
-    await this.pgp.db.none('delete from contacts_page where user_id=$1', [
+    await this.pgp.db.none('delete from contact_pages where user_id=$1', [
       userId,
     ]);
   }

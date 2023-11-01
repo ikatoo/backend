@@ -16,7 +16,7 @@ CREATE TABLE "public"."about_pages" (
 
 CREATE SEQUENCE contacts_page_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."contacts_page" (
+CREATE TABLE "public"."contact_pages" (
     "id" integer DEFAULT nextval('contacts_page_id_seq') NOT NULL,
     "title" character varying NOT NULL,
     "description" character varying NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE "public"."skills_on_users" (
 
 CREATE SEQUENCE skills_page_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."skills_page" (
+CREATE TABLE "public"."skills_pages" (
     "id" integer DEFAULT nextval('skills_page_id_seq') NOT NULL,
     "title" character varying NOT NULL,
     "description" character varying NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE "public"."users" (
 
 ALTER TABLE ONLY "public"."about_pages" ADD CONSTRAINT "about_pages_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
-ALTER TABLE ONLY "public"."contacts_page" ADD CONSTRAINT "contacts_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "public"."contact_pages" ADD CONSTRAINT "contacts_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
 ALTER TABLE ONLY "public"."projects_on_users" ADD CONSTRAINT "projects_on_users_project_id_fkey" FOREIGN KEY (project_id) REFERENCES projects(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "public"."projects_on_users" ADD CONSTRAINT "projects_on_users_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
@@ -115,6 +115,6 @@ ALTER TABLE ONLY "public"."projects_on_users" ADD CONSTRAINT "projects_on_users_
 ALTER TABLE ONLY "public"."skills_on_users" ADD CONSTRAINT "skills_on_users_skill_id_fkey" FOREIGN KEY (skill_id) REFERENCES skills(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "public"."skills_on_users" ADD CONSTRAINT "skills_on_users_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
-ALTER TABLE ONLY "public"."skills_page" ADD CONSTRAINT "skills_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "public"."skills_pages" ADD CONSTRAINT "skills_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
--- 2023-11-01 21:01:01.994632+00
+-- 2023-11-01 23:02:46.560743+00
