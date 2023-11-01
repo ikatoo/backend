@@ -1,7 +1,5 @@
 -- Adminer 4.8.1 PostgreSQL 14.9 dump
 
-DROP TABLE IF EXISTS "about_pages";
-DROP SEQUENCE IF EXISTS about_pages_id_seq;
 CREATE SEQUENCE about_pages_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."about_pages" (
@@ -16,8 +14,6 @@ CREATE TABLE "public"."about_pages" (
 ) WITH (oids = false);
 
 
-DROP TABLE IF EXISTS "contacts_page";
-DROP SEQUENCE IF EXISTS contacts_page_id_seq;
 CREATE SEQUENCE contacts_page_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."contacts_page" (
@@ -32,8 +28,6 @@ CREATE TABLE "public"."contacts_page" (
 ) WITH (oids = false);
 
 
-DROP TABLE IF EXISTS "projects";
-DROP SEQUENCE IF EXISTS projects_id_seq;
 CREATE SEQUENCE projects_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."projects" (
@@ -47,8 +41,6 @@ CREATE TABLE "public"."projects" (
 ) WITH (oids = false);
 
 
-DROP TABLE IF EXISTS "projects_on_users";
-DROP SEQUENCE IF EXISTS projects_on_users_id_seq;
 CREATE SEQUENCE projects_on_users_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."projects_on_users" (
@@ -59,8 +51,6 @@ CREATE TABLE "public"."projects_on_users" (
 ) WITH (oids = false);
 
 
-DROP TABLE IF EXISTS "skills";
-DROP SEQUENCE IF EXISTS skills_id_seq;
 CREATE SEQUENCE skills_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."skills" (
@@ -71,8 +61,6 @@ CREATE TABLE "public"."skills" (
 ) WITH (oids = false);
 
 
-DROP TABLE IF EXISTS "skills_on_users";
-DROP SEQUENCE IF EXISTS skills_on_users_id_seq;
 CREATE SEQUENCE skills_on_users_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."skills_on_users" (
@@ -83,8 +71,6 @@ CREATE TABLE "public"."skills_on_users" (
 ) WITH (oids = false);
 
 
-DROP TABLE IF EXISTS "skills_page";
-DROP SEQUENCE IF EXISTS skills_page_id_seq;
 CREATE SEQUENCE skills_page_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."skills_page" (
@@ -97,8 +83,6 @@ CREATE TABLE "public"."skills_page" (
 ) WITH (oids = false);
 
 
-DROP TABLE IF EXISTS "token_blacklist";
-DROP SEQUENCE IF EXISTS token_blacklist_id_seq;
 CREATE SEQUENCE token_blacklist_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."token_blacklist" (
@@ -109,8 +93,6 @@ CREATE TABLE "public"."token_blacklist" (
 ) WITH (oids = false);
 
 
-DROP TABLE IF EXISTS "users";
-DROP SEQUENCE IF EXISTS users_id_seq;
 CREATE SEQUENCE users_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."users" (
@@ -118,6 +100,7 @@ CREATE TABLE "public"."users" (
     "name" character varying NOT NULL,
     "email" character varying NOT NULL,
     "hash_password" character varying NOT NULL,
+    CONSTRAINT "users_email" UNIQUE ("email"),
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
@@ -134,4 +117,4 @@ ALTER TABLE ONLY "public"."skills_on_users" ADD CONSTRAINT "skills_on_users_user
 
 ALTER TABLE ONLY "public"."skills_page" ADD CONSTRAINT "skills_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
--- 2023-10-23 16:40:42.251427+00
+-- 2023-11-01 21:01:01.994632+00
