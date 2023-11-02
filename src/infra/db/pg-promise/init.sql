@@ -6,8 +6,8 @@ CREATE TABLE "public"."about_pages" (
     "id" integer DEFAULT nextval('about_pages_id_seq') NOT NULL,
     "title" character varying NOT NULL,
     "description" character varying NOT NULL,
-    "illustration_url" character varying,
-    "illustration_alt" character varying,
+    "image_url" character varying,
+    "image_alt" character varying,
     "user_id" integer NOT NULL,
     CONSTRAINT "about_pages_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "about_pages_user_id" UNIQUE ("user_id")
@@ -117,4 +117,4 @@ ALTER TABLE ONLY "public"."skills_on_users" ADD CONSTRAINT "skills_on_users_user
 
 ALTER TABLE ONLY "public"."skills_pages" ADD CONSTRAINT "skills_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
--- 2023-11-01 23:02:46.560743+00
+-- 2023-11-02 00:05:55.557178+00

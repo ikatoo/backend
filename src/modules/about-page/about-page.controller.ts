@@ -16,11 +16,6 @@ import { UpdateAboutPageDto } from './dto/update-about-page.dto';
 export class AboutPageController {
   constructor(private readonly aboutPageService: AboutPageService) {}
 
-  @Get()
-  getPage() {
-    return this.aboutPageService.getPage();
-  }
-
   @Post()
   create(@Body() createAboutPageDto: CreateAboutPageDto) {
     return this.aboutPageService.create(createAboutPageDto);
