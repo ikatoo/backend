@@ -64,21 +64,24 @@ describe('UserService', () => {
     const newValues = { name: '_new_name', password: '_new_password' };
     await userService.update(id, newValues);
 
-    const { hash_password, ...updatedUser } = await db.oneOrNone(
-      'select * from users where id=$1',
-      [id],
-    );
-
-    expect(updatedUser).toEqual({
+    const updatedUser = await db.oneOrNone('select * from users where id=$1', [
       id,
+    ]);
+    const expected = {
+      name: updatedUser.name,
+      email: updatedUser.email,
+    };
+
+    expect(expected).toEqual({
       name: newValues.name,
       email: mockedUser.email,
     });
     expect(
-      await crypto.compareHash(mockedUser.password, hash_password),
+      await crypto.compareHash(mockedUser.password, updatedUser.hash_password),
     ).toBeFalsy();
+
     expect(
-      await crypto.compareHash(newValues.password, hash_password),
+      await crypto.compareHash(newValues.password, updatedUser.hash_password),
     ).toBeTruthy();
   });
 

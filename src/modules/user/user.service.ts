@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
-import { IUserService } from 'src/modules/user/IUserService';
-import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
-import { UpdateUserDto } from 'src/modules/user/dto/update-user.dto';
+import {
+  IUserService,
+  User,
+  UserWithoutId,
+} from 'src/modules/user/IUserService';
 
 @Injectable()
 export class UsersService implements IUserService {
@@ -20,8 +22,8 @@ export class UsersService implements IUserService {
     return [...users];
   }
 
-  async create(createUserDto: CreateUserDto) {
-    const { password, name, email } = createUserDto;
+  async create(user: User) {
+    const { password, name, email } = user;
     const hashPassword = await this.crypto.hasher(8, password);
     await this.pgp.db.none(
       'insert into users(name, email, hash_password) values($1, $2, $3);',
@@ -29,14 +31,14 @@ export class UsersService implements IUserService {
     );
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = { ...updateUserDto };
+  async update(id: number, user: Partial<UserWithoutId>) {
+    const newUser = { ...user, hash_password: '' };
     if (!!user.password) {
-      user.hash_password = await this.crypto.hasher(8, user.password);
-      delete user.password;
+      newUser.hash_password = await this.crypto.hasher(8, user.password);
+      delete newUser.password;
     }
-    const fields = Object.keys(user);
-    const values = Object.values(user);
+    const fields = Object.keys(newUser);
+    const values = Object.values(newUser);
     const fieldsValues = fields
       .map((field, index) => `${field}='${values[index]}'`)
       .toString();

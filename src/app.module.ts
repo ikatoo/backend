@@ -5,6 +5,7 @@ import { ContactPageModule } from './modules/contact-page/contact-page.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { PgPromiseService } from './infra/db/pg-promise/pg-promise.service';
 import { SkillsModule } from './modules/skills/skills.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { SkillsModule } from './modules/skills/skills.module';
     ContactPageModule,
     ProjectsModule,
     SkillsModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [PgPromiseService],
