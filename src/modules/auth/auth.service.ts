@@ -2,6 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 
+export type SignInArgs = { email: string; password: string };
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -9,7 +11,7 @@ export class AuthService {
     private readonly crypto: CryptoService,
   ) {}
 
-  async signIn(email: string, password: string): Promise<any> {
+  async signIn({ email, password }: SignInArgs): Promise<any> {
     const { hash_password, ...user } = await this.pgp.db.oneOrNone(
       'select * from users where email=$1',
       [email],
