@@ -100,6 +100,7 @@ CREATE TABLE "public"."users" (
     "name" character varying NOT NULL,
     "email" character varying NOT NULL,
     "hash_password" character varying NOT NULL,
+    "enabled" boolean NOT NULL DEFAULT false,
     CONSTRAINT "users_email" UNIQUE ("email"),
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
@@ -117,4 +118,4 @@ ALTER TABLE ONLY "public"."skills_on_users" ADD CONSTRAINT "skills_on_users_user
 
 ALTER TABLE ONLY "public"."skills_pages" ADD CONSTRAINT "skills_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
--- 2023-11-02 00:05:55.557178+00
+-- 2023-11-08 23:01:23.853576+00
