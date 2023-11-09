@@ -32,16 +32,20 @@ export class UsersService implements IUserService {
   }
 
   async update(id: number, user: Partial<UserWithoutId>) {
-    const newUser = { ...user, hash_password: '' };
+    console.log('user.password ===>', user.password);
+    const newUser = { ...user, hash_password: undefined };
     if (!!user.password) {
       newUser.hash_password = await this.crypto.hasher(8, user.password);
       delete newUser.password;
+    } else {
+      delete newUser.hash_password;
     }
     const fields = Object.keys(newUser);
     const values = Object.values(newUser);
     const fieldsValues = fields
       .map((field, index) => `${field}='${values[index]}'`)
       .toString();
+    console.log('fieldsValues ===>', fieldsValues);
     await this.pgp.db.none('update users set $1:raw where id=$2;', [
       fieldsValues,
       id,
@@ -51,6 +55,6 @@ export class UsersService implements IUserService {
   async remove(id: number) {
     if (!id) return;
 
-    await this.pgp.db.none('delete from users where id=$1', [id]);
+    await this.pgp.db.none('delete from users where id=$1;', [id]);
   }
 }
