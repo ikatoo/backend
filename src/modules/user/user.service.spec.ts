@@ -40,7 +40,7 @@ describe('UserService', () => {
     );
     const { password, ...expected } = mockedUser;
 
-    expect(createdUser).toEqual(expected);
+    expect(createdUser).toEqual({ ...expected, enabled: false });
     expect(await crypto.compareHash(password, hash_password)).toBeTruthy();
     expect(id).toBeGreaterThan(0);
   });
