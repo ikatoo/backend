@@ -16,7 +16,7 @@ export class UsersService implements IUserService {
 
   async listAll() {
     const users = await this.pgp.db.manyOrNone(
-      'select id, name, email from users;',
+      'select id, name, email, enabled from users;',
     );
 
     return [...users];
