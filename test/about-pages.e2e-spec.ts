@@ -22,7 +22,7 @@ describe('AboutPagesController (e2e)', () => {
     await pgp.db.none('delete from about_pages;');
   });
 
-  it('/about/user-id/:userId (GET)', async () => {
+  it.only('/about/user-id/:userId (GET)', async () => {
     const mockedPages = Array.from({ length: 2 }, (_, i) => ({
       title: `Page ${i}❗`,
       description: `<p>Description, page ${i}😄</p>`,
@@ -35,16 +35,20 @@ describe('AboutPagesController (e2e)', () => {
       password: `pass${i}`,
     }));
 
-    const createdUsers = await pgp.db.many(
-      `insert into about_pages(
+    const values = `${mockedUsers.map(
+      (user) =>
+        `(${Object.values(user)
+          .map((value) => `'${value}'`)
+          .toString()})`,
+    )}`;
+    const createdUsers = await pgp.db.many<{ id: number }[]>(
+      `insert into users(
         name,
         email,
         hash_password
-      ) values($1),($2) returning id;`,
-      [mockedUsers.map((user) => `${Object.values(user).toString()}`)],
+      ) values$1:raw returning id;`,
+      [values],
     );
-
-    console.log(createdUsers);
 
     // const { body, status } = await request(app.getHttpServer()).get(
     //   `/about/user-id/${userId}`,

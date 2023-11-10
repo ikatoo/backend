@@ -3,7 +3,7 @@ export type User = {
   name: string;
   email: string;
   password: string;
-  enabled: boolean;
+  enabled?: boolean;
 };
 
 export type UserWithoutPassword = Omit<User, 'password'>;
