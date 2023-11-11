@@ -1,27 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CryptoService } from 'src/infra/security/crypto/crypto.service';
-import request from 'supertest';
-import { AppModule } from './../src/app.module';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CreateAboutPageDto } from 'src/modules/about-page/dto/create-about-page.dto';
+import request from 'supertest';
+import { AppModule } from './../src/app.module';
+import { UpdateAboutPageDto } from 'src/modules/about-page/dto/update-about-page.dto';
+import { userFactory } from '../src/test-utils/user-factory';
+import {
+  aboutPageFactory,
+  mockedAboutPage,
+} from 'src/test-utils/about-page-factory';
 
 describe('AboutPagesController (e2e)', () => {
   let app: INestApplication;
   let pgp: PgPromiseService;
-
-  const mockedPage = {
-    title: 'Page❗',
-    description: '<p>Description, page😄</p>',
-    image_url: '/public/teste-page.img',
-    image_alt: 'imagem de teste page',
-  };
-  const mockedUser = {
-    name: 'Teste',
-    email: 'teste@teste.com',
-    password: 'pass',
-  };
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -36,43 +29,17 @@ describe('AboutPagesController (e2e)', () => {
   });
 
   it('/about/user-id/:userId (GET)', async () => {
-    const createdUser = await pgp.db.one<{ id: number }>(
-      `insert into users(
-        name,
-        email,
-        hash_password
-      ) values($1:raw) returning id;`,
-      [
-        Object.values(mockedUser)
-          .map((value) => `'${value}'`)
-          .toString(),
-      ],
-    );
+    const createdUser = await userFactory();
 
-    const createdPage = await pgp.db.one<{ id: number }>(
-      `insert into about_pages(
-      title,
-      description,
-      image_url,
-      image_alt,
-      user_id
-    ) values($1:raw,$2) returning id;`,
-      [
-        Object.values(mockedPage)
-          .map((value) => `'${value}'`)
-          .toString(),
-        createdUser.id,
-      ],
-    );
+    const createdPage = await aboutPageFactory(createdUser.id);
 
     const { body, status } = await request(app.getHttpServer()).get(
       `/about/user-id/${createdUser.id}`,
     );
 
-    const { image_alt, image_url, ...page } = mockedPage;
+    const { image_alt, image_url, user_id, ...page } = createdPage;
     const expected = {
       ...page,
-      id: createdPage.id,
       image: { alt: image_alt, url: image_url },
     };
 
@@ -81,25 +48,14 @@ describe('AboutPagesController (e2e)', () => {
   });
 
   it('/about (POST)', async () => {
-    const { id: userId } = await pgp.db.one<{ id: number }>(
-      `insert into users(
-        name,
-        email,
-        hash_password
-      ) values($1:raw) returning id;`,
-      [
-        Object.values(mockedUser)
-          .map((value) => `'${value}'`)
-          .toString(),
-      ],
-    );
+    const { id: userId } = await userFactory();
 
     const data: CreateAboutPageDto = {
-      title: mockedPage.title,
-      description: mockedPage.description,
+      title: mockedAboutPage.title,
+      description: mockedAboutPage.description,
       image: {
-        imageUrl: mockedPage.image_url,
-        imageAlt: mockedPage.image_alt,
+        imageUrl: mockedAboutPage.image_url,
+        imageAlt: mockedAboutPage.image_alt,
       },
       userId,
     };
@@ -113,7 +69,7 @@ describe('AboutPagesController (e2e)', () => {
     );
     const expected = {
       id: createdPage.id,
-      ...mockedPage,
+      ...mockedAboutPage,
       user_id: userId,
     };
 
@@ -122,49 +78,61 @@ describe('AboutPagesController (e2e)', () => {
     expect(createdPage).toEqual(expected);
   });
 
-  // it('/user (PATCH)', async () => {
-  //   const values = Object.values(usersMock[0]).map((value) => `'${value}'`);
-  //   const { id: userId } = await pgp.db.oneOrNone(
-  //     `insert into users(name, email, hash_password) values(${values}) returning id;`,
-  //   );
+  it('/about/user-id/:userId (PATCH)', async () => {
+    const { id: userId } = await userFactory();
+    const newValues = {
+      title: 'New Title',
+      image_url: 'new-image.jpg',
+      image_alt: 'new-image alt',
+    };
+    const { id: pageId } = await aboutPageFactory(userId);
 
-  //   const { body, status } = await request(app.getHttpServer())
-  //     .patch(`/user/${userId}`)
-  //     .send({ name: 'Updated User' });
-  //   const { hash, ...updatedUser } = await pgp.db.oneOrNone(
-  //     'select id, name, email, hash_password as hash from users where id=$1;',
-  //     [userId],
-  //   );
+    const data = {
+      title: newValues.title,
+      image: {
+        imageUrl: newValues.image_url,
+        imageAlt: newValues.image_alt,
+      },
+    };
 
-  //   expect(body).toEqual({});
-  //   expect(status).toEqual(204);
-  //   expect(updatedUser).toEqual({
-  //     id: userId,
-  //     name: 'Updated User',
-  //     email: usersMock[0].email,
-  //   });
-  // });
+    const { body, status } = await request(app.getHttpServer())
+      .patch(`/about/user-id/${userId}`)
+      .send(data);
 
-  // it('/user (DELETE)', async () => {
-  //   const values = Object.values(usersMock[0])
-  //     .map((value) => `'${value}'`)
-  //     .toString();
-  //   const user = await pgp.db.oneOrNone(
-  //     'insert into users($1:raw) values ($2:raw) returning id;',
-  //     ['name, email, hash_password', values],
-  //   );
-  //   const { id } = user;
+    const updatedPage = await pgp.db.one(
+      'select * from about_pages where user_id=$1;',
+      [userId],
+    );
+    const expected = {
+      id: pageId,
+      title: newValues.title,
+      description: mockedAboutPage.description,
+      image_url: newValues.image_url,
+      image_alt: newValues.image_alt,
+      user_id: userId,
+    };
 
-  //   const { body, status } = await request(app.getHttpServer()).delete(
-  //     `/user/${id}`,
-  //   );
-  //   const deletedUser = await pgp.db.oneOrNone({
-  //     text: 'select name, email, hash_password from users where id=$1',
-  //     values: [id],
-  //   });
+    expect(body).toEqual({});
+    expect(status).toEqual(204);
+    expect(updatedPage).toEqual(expected);
+  });
 
-  //   expect(status).toEqual(204);
-  //   expect(body).toEqual({});
-  //   expect(deletedUser).toBeNull();
-  // });
+  it('/about/user-id/:userId (DELETE)', async () => {
+    const { id } = await userFactory();
+    const aboutPage = await aboutPageFactory(id);
+
+    expect(aboutPage).toBeDefined();
+
+    const { body, status } = await request(app.getHttpServer()).delete(
+      `/about/user-id/${id}`,
+    );
+    const deletedPage = await pgp.db.oneOrNone({
+      text: 'select * from about_pages where user_id=$1',
+      values: [id],
+    });
+
+    expect(status).toEqual(204);
+    expect(body).toEqual({});
+    expect(deletedPage).toBeNull();
+  });
 });
