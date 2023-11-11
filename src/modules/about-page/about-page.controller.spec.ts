@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
+import { userFactory } from 'src/test-utils/user-factory';
 import { AboutPageController } from './about-page.controller';
 import { AboutPageService } from './about-page.service';
 
@@ -7,11 +8,6 @@ describe('AboutPageController', () => {
   let aboutPageController: AboutPageController;
   let pgp: PgPromiseService;
 
-  const userMock = {
-    name: 'Ttesasdf',
-    email: 'asdf@asdflkj.com',
-    password: 'lksjdfl',
-  };
   const pageMock = {
     title: 'Title test',
     description: 'Desc test',
@@ -19,27 +15,21 @@ describe('AboutPageController', () => {
     image_alt: 'llajsdf',
   };
 
-  const userFactory = async () =>
-    await pgp.db.one<{ id: number }>(
-      'insert into users(name, email, hash_password) values($1, $2, $3) returning id;',
-      Object.values(userMock),
-    );
-
   const pageFactory = async (user_id: number) =>
     await pgp.db.one<{ id: number }>(
       `insert into about_pages(
-      user_id, 
-      title, 
-      description,
-      image_url,
-      image_alt
-    ) values(
-      ${user_id}, 
-      '${pageMock.title}', 
-      '${pageMock.description}',
-      '${pageMock.image_url}',
-      '${pageMock.image_alt}'
-    ) returning id;`,
+        user_id, 
+        title, 
+        description,
+        image_url,
+        image_alt
+      ) values(
+        ${user_id}, 
+        '${pageMock.title}', 
+        '${pageMock.description}',
+        '${pageMock.image_url}',
+        '${pageMock.image_alt}'
+      ) returning id;`,
     );
 
   beforeEach(async () => {
@@ -60,10 +50,7 @@ describe('AboutPageController', () => {
   });
 
   it('should be create the about page', async () => {
-    const { id: userId } = await pgp.db.one<{ id: number }>(
-      'insert into users(name, email, hash_password) values($1, $2, $3) returning id;',
-      Object.values(userMock),
-    );
+    const { id: userId } = await userFactory();
     const { image_alt: imageAlt, image_url: imageUrl, ...data } = pageMock;
     await aboutPageController.create({
       ...data,
