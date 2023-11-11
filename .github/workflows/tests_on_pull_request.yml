@@ -29,8 +29,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Prisma db push
-        run: npx prisma db push
+      - name: Create Tables
+        env:
+          PGPASSWORD: postgres
+        run: psql -v ON_ERROR_STOP=1 --host postgres --username postgres --dbname postgres -a -f src/infra/db/pg-promise/init.sql
 
       - name: Nest Unit Tests
         run: npm run test:e2e
