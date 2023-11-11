@@ -22,8 +22,9 @@ export class AboutPageController {
   }
 
   @Get('user-id/:userId')
-  findByUser(@Param('userId') userId: string) {
-    return this.aboutPageService.findByUser(+userId);
+  async findByUser(@Param('userId') userId: string) {
+    const page = await this.aboutPageService.findByUser(+userId);
+    return page;
   }
 
   @HttpCode(204)
