@@ -5,10 +5,23 @@ import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
+import { CreateAboutPageDto } from 'src/modules/about-page/dto/create-about-page.dto';
 
 describe('AboutPagesController (e2e)', () => {
   let app: INestApplication;
   let pgp: PgPromiseService;
+
+  const mockedPage = {
+    title: 'Page❗',
+    description: '<p>Description, page😄</p>',
+    image_url: '/public/teste-page.img',
+    image_alt: 'imagem de teste page',
+  };
+  const mockedUser = {
+    name: 'Teste',
+    email: 'teste@teste.com',
+    password: 'pass',
+  };
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -22,70 +35,92 @@ describe('AboutPagesController (e2e)', () => {
     await pgp.db.none('delete from about_pages;');
   });
 
-  it.only('/about/user-id/:userId (GET)', async () => {
-    const mockedPages = Array.from({ length: 2 }, (_, i) => ({
-      title: `Page ${i}❗`,
-      description: `<p>Description, page ${i}😄</p>`,
-      image_url: `/public/teste-page${i}.img`,
-      image_alt: `imagem de teste page ${i}`,
-    }));
-    const mockedUsers = Array.from({ length: 2 }, (_, i) => ({
-      name: `Teste ${i}`,
-      email: `teste${i}@teste.com`,
-      password: `pass${i}`,
-    }));
-
-    const values = `${mockedUsers.map(
-      (user) =>
-        `(${Object.values(user)
-          .map((value) => `'${value}'`)
-          .toString()})`,
-    )}`;
-    const createdUsers = await pgp.db.many<{ id: number }[]>(
+  it('/about/user-id/:userId (GET)', async () => {
+    const createdUser = await pgp.db.one<{ id: number }>(
       `insert into users(
         name,
         email,
         hash_password
-      ) values$1:raw returning id;`,
-      [values],
+      ) values($1:raw) returning id;`,
+      [
+        Object.values(mockedUser)
+          .map((value) => `'${value}'`)
+          .toString(),
+      ],
     );
 
-    // const { body, status } = await request(app.getHttpServer()).get(
-    //   `/about/user-id/${userId}`,
-    // );
-    // const result = body.map((user) => ({
-    //   name: user.name,
-    //   email: user.email,
-    // }));
-    // const expected = usersMock.map((user) => ({
-    //   name: user.name,
-    //   email: user.email,
-    // }));
+    const createdPage = await pgp.db.one<{ id: number }>(
+      `insert into about_pages(
+      title,
+      description,
+      image_url,
+      image_alt,
+      user_id
+    ) values($1:raw,$2) returning id;`,
+      [
+        Object.values(mockedPage)
+          .map((value) => `'${value}'`)
+          .toString(),
+        createdUser.id,
+      ],
+    );
 
-    // expect(status).toEqual(200);
-    // expect(result).toEqual(expected);
+    const { body, status } = await request(app.getHttpServer()).get(
+      `/about/user-id/${createdUser.id}`,
+    );
+
+    const { image_alt, image_url, ...page } = mockedPage;
+    const expected = {
+      ...page,
+      id: createdPage.id,
+      image: { alt: image_alt, url: image_url },
+    };
+
+    expect(status).toEqual(200);
+    expect(body).toEqual(expected);
   });
 
-  // it('/about (POST)', async () => {
-  //   const { body, status } = await request(app.getHttpServer())
-  //     .post('/user')
-  //     .send(usersMock[1]);
+  it('/about (POST)', async () => {
+    const { id: userId } = await pgp.db.one<{ id: number }>(
+      `insert into users(
+        name,
+        email,
+        hash_password
+      ) values($1:raw) returning id;`,
+      [
+        Object.values(mockedUser)
+          .map((value) => `'${value}'`)
+          .toString(),
+      ],
+    );
 
-  //   const user = await pgp.db.oneOrNone(
-  //     'select id, name, email, hash_password as hash from users where email=$1;',
-  //     [usersMock[1].email],
-  //   );
-  //   const { id, name, email, hash } = user;
+    const data: CreateAboutPageDto = {
+      title: mockedPage.title,
+      description: mockedPage.description,
+      image: {
+        imageUrl: mockedPage.image_url,
+        imageAlt: mockedPage.image_alt,
+      },
+      userId,
+    };
 
-  //   expect(body).toEqual({});
-  //   expect(status).toEqual(201);
-  //   expect(id).toBeDefined();
-  //   expect({ name, email }).toEqual({
-  //     name: usersMock[1].name,
-  //     email: usersMock[1].email,
-  //   });
-  //   expect(await compareHash(usersMock[1].password, hash)).toBeTruthy();
-  // });
+    const { body, status } = await request(app.getHttpServer())
+      .post('/about')
+      .send(data);
+    const createdPage = await pgp.db.one(
+      'select * from about_pages where user_id=$1;',
+      [userId],
+    );
+    const expected = {
+      id: createdPage.id,
+      ...mockedPage,
+      user_id: userId,
+    };
+
+    expect(body).toEqual({});
+    expect(status).toEqual(201);
+    expect(createdPage).toEqual(expected);
+  });
 
   // it('/user (PATCH)', async () => {
   //   const values = Object.values(usersMock[0]).map((value) => `'${value}'`);

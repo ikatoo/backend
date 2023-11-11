@@ -76,4 +76,23 @@ describe('AboutPageService', () => {
 
     expect(page).toEqual(expected);
   });
+
+  it('should create the about page', async () => {
+    const { id: userId } = await pgp.db.one<{ id: number }>(
+      'insert into users(name, email, hash_password) values($1, $2, $3) returning id;',
+      Object.values(userMock),
+    );
+    const {
+      image: { alt: imageAlt, url: imageUrl },
+      ...data
+    } = aboutPageMock;
+    await aboutPageService.create({
+      ...data,
+      image: {
+        imageUrl,
+        imageAlt,
+      },
+      userId,
+    });
+  });
 });
