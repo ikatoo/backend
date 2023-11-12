@@ -28,8 +28,6 @@ jobs:
           --health-retries 5
       psql:
         image: postgres
-        links:
-          - postgres
         volumes:
           - ./src/infra/db/pg-promise/scripts:/db/scripts
         command: psql --host postgres --username postgres --dbname postgres -a -f /db/scripts/init.sql
