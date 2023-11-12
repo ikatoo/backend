@@ -18,6 +18,7 @@ jobs:
       postgres:
         image: postgres
         env:
+          POSTGRES_DB: postgres
           POSTGRES_PASSWORD: postgres
         volumes:
           - ./src/infra/db/pg-promise/scripts:/db/scripts
