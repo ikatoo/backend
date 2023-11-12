@@ -7,15 +7,18 @@ jobs:
     runs-on: ubuntu-latest
     container: node:18
     env:
-      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres?schema=public"
+      POSTGRES_HOSTNAME: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DBNAME: postgres
+      PRIVATE_KEY: valid-private-key
 
     services:
       postgres:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
         volumes:
           - ./src/infra/db/pg-promise/scripts:/db/scripts
           - ./src/infra/db/pg-promise/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
