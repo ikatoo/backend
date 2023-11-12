@@ -5,7 +5,10 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
-    container: node:18
+    timeout-minutes: 2
+    strategy:
+      matrix:
+        node: [18]
     env:
       POSTGRES_HOSTNAME: postgres
       POSTGRES_PORT: 5432
@@ -26,17 +29,24 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      psql:
-        image: postgres
-        volumes:
-          - ./src/infra/db/pg-promise/scripts:/db/scripts
-        command: psql --host postgres --username postgres --dbname postgres -a -f /db/scripts/init.sql
 
+    container:
+      image: postgres:14
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
+
+      - name: Create Tables
+        env:
+          PGPASSWORD: postgres
+        run: psql -v ON_ERROR_STOP=1 --host postgres --username postgres --dbname postgres -a -f src/infra/db/pg-promise/init.sql
+
+      - name: Setup Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
 
       - name: Install dependencies
         run: npm ci
