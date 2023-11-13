@@ -11,11 +11,11 @@ export class SkillsService {
   }
 
   async findByUser(userId: number) {
-    const skills = await this.pgp.db.manyOrNone(
+    const skills = await this.pgp.db.manyOrNone<{ id: number; title: string }>(
       `
         select 
-          skills.id,
-          title
+          skills.id as id,
+          skills.title as title
         from skills, skills_on_users 
         where 
           skills_on_users.skill_id = skills.id and
@@ -32,12 +32,17 @@ export class SkillsService {
     const userExist = await db.oneOrNone('select * from users where id=$1', [
       createSkillDto.userId,
     ]);
-    if (!userExist) throw new Error('User not found.');
-
-    const { skillId } = await db.oneOrNone(
-      `insert into users(title) values ($1) returning id as skillId;`,
+    const skillExist = await db.oneOrNone(
+      'select id from skills where title=$1',
       [createSkillDto.title],
     );
+    if (!userExist) throw new Error('User not found.');
+    const { id: skillId } =
+      skillExist ??
+      (await db.oneOrNone(
+        'insert into skills(title) values($1) returning id;',
+        [createSkillDto.title],
+      ));
 
     await db.none(
       'insert into skills_on_users(skill_id, user_id) values($1, $2);',
@@ -47,5 +52,19 @@ export class SkillsService {
 
   async remove(id: number) {
     await this.pgp.db.none('delete from skills where id=$1', [id]);
+  }
+
+  async removeOfTheUser(userId: number, skillId: string) {
+    await this.pgp.db.none(
+      'delete from skills_on_users where user_id=$1 and skill_id=$2',
+      [userId, skillId],
+    );
+  }
+
+  async update(id: number, newTitle: string) {
+    await this.pgp.db.none('update skills set title=$2 where id=$1;', [
+      id,
+      newTitle,
+    ]);
   }
 }
