@@ -6,6 +6,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { PgPromiseService } from './infra/db/pg-promise/pg-promise.service';
 import { SkillsModule } from './modules/skills/skills.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { SkillsPageModule } from './modules/skills-page/skills-page.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthModule } from './modules/auth/auth.module';
     ProjectsModule,
     SkillsModule,
     AuthModule,
+    SkillsPageModule,
   ],
   controllers: [],
   providers: [PgPromiseService],
