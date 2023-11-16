@@ -29,12 +29,13 @@ describe('SkillsPagesController (e2e)', () => {
     const createdPage = await skillPageFactory(createdUser.id);
 
     const { body, status } = await request(app.getHttpServer()).get(
-      `/skills/user-id/${createdUser.id}`,
+      `/skills-page/user-id/${createdUser.id}`,
     );
 
     const { user_id: userId, ...page } = createdPage;
     const expected = {
       ...page,
+      projects: [],
       userId,
     };
 
