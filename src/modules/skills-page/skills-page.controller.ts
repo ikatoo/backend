@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+} from '@nestjs/common';
 import { SkillsPageService } from './skills-page.service';
 import { CreateSkillsPageDto } from './dto/create-skills-page.dto';
 import { UpdateSkillsPageDto } from './dto/update-skills-page.dto';
@@ -12,23 +21,22 @@ export class SkillsPageController {
     return this.skillsPageService.create(createSkillsPageDto);
   }
 
-  @Get()
-  findAll() {
-    return this.skillsPageService.findAll();
+  @Get('user-id/:userId')
+  async findByUser(@Param('userId') userId: string) {
+    return this.skillsPageService.findByUser(+userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.skillsPageService.findByUser(+id);
+  @HttpCode(204)
+  @Patch('user-id/:userId')
+  update(
+    @Param('userId') userId: string,
+    @Body() updateSkillsPageDto: UpdateSkillsPageDto,
+  ) {
+    return this.skillsPageService.update(+userId, updateSkillsPageDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSkillsPageDto: UpdateSkillsPageDto) {
-    return this.skillsPageService.update(+id, updateSkillsPageDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.skillsPageService.remove(+id);
+  @Delete('user-id/:userId')
+  remove(@Param('userId') userId: string) {
+    return this.skillsPageService.remove(+userId);
   }
 }
