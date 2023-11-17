@@ -8,25 +8,68 @@ export class ProjectsService {
   constructor(private readonly pgp: PgPromiseService) {}
 
   async create(createProjectDto: CreateProjectDto) {
-    const project = {
-      title: createProjectDto.title,
-      description: createProjectDto.description,
-      snapshot: createProjectDto.snapshot,
-      repository_link: createProjectDto.repositoryLink,
-      last_update: createProjectDto.lastUpdate,
-    };
-    if (!createProjectDto.userId) return;
+    const { skills, userId, ...projectDto } = createProjectDto;
 
-    const fields = Object.keys(project).toString();
-    const values = Object.values(project).toString();
-    const { id: projectId } = await this.pgp.db.oneOrNone(
-      'insert into projects($1) values ($2) returning id as projectId;',
-      [fields, values],
+    // projeto
+    const { projectId } = await this.pgp.db.oneOrNone(
+      `insert into projects(
+        title,
+        description,
+        snapshot,
+        repository_link,
+        last_update
+      ) values($1) returning id as "projectId";`,
+      [
+        Object.values(projectDto)
+          .map((value) => `'${value}'`)
+          .toString(),
+      ],
     );
-    await this.pgp.db.none(
-      'insert into projects_on_users(project_id, user_id) values ($1, $2);',
-      [projectId, createProjectDto.userId],
+    // relacionar o projeto ao usuario
+    const projectOnUser = await this.pgp.db.oneOrNone(
+      'select id from projects_on_users where project_id=$1 and user_id=$2',
+      [projectId, userId],
     );
+    if (!projectOnUser) {
+      const newProjectOnUser = await this.pgp.db.oneOrNone(
+        'insert into projects_on_users(project_id, user_id) values($1, $2) returning id',
+        [projectId, userId],
+      );
+      projectOnUser.id = newProjectOnUser.id;
+    }
+
+    // skills
+    skills.forEach(async (skill) => {
+      const existSkill = await this.pgp.db.oneOrNone(
+        'select * from skills where title ilike $1;',
+        [skill.title.toLowerCase()],
+      );
+
+      if (!existSkill) {
+        const { skillId } = await this.pgp.db.oneOrNone(
+          `insert into skills(title) values($1) returning id as "skillId";`,
+          [skill.title],
+        );
+        existSkill.id = skillId;
+      }
+
+      const skillOnUser = await this.pgp.db.oneOrNone(
+        'select * from skills_on_users where skill_id=$1 and user_id=$2;',
+        [existSkill.id, userId],
+      );
+      if (!skillOnUser) {
+        const newSkillOnUser = await this.pgp.db.oneOrNone(
+          'insert into skills_on_users(skill_id, user_id) values($1, $2) returning id;',
+          [existSkill.id, userId],
+        );
+        skillOnUser.id = newSkillOnUser.id;
+      }
+
+      await this.pgp.db.none(
+        'insert into skills_of_user_on_projects(skill_user_id, project_user_id) values($1, $2);',
+        [skillOnUser.id, projectOnUser.id],
+      );
+    });
   }
 
   async listAll() {
