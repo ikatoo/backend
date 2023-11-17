@@ -21,7 +21,7 @@ export class AuthService {
 
   async signIn({ email, password }: SignInArgs): Promise<SignInResponse> {
     const { hash_password, ...user } = await this.pgp.db.oneOrNone<UserDb>(
-      'select * from users where email=$1',
+      'select * from users where email ilike $1',
       [email],
     );
 

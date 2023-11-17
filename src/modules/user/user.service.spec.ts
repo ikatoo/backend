@@ -35,7 +35,7 @@ describe('UserService', () => {
     await userService.create(mockedUser);
 
     const { id, hash_password, ...createdUser } = await pgp.db.oneOrNone(
-      'select * from users where email=$1',
+      'select * from users where email ilike $1',
       [mockedUser.email],
     );
     const { password, ...expected } = mockedUser;
@@ -98,12 +98,12 @@ describe('UserService', () => {
       'insert into users(name, email, hash_password) values$1:raw',
       [values],
     );
-    const user = await pgp.db.one('select * from users where email=$1;', [
+    const user = await pgp.db.one('select * from users where email ilike $1;', [
       mockedUsers[2].email,
     ]);
     await userService.remove(user.id);
     const deletedUser = await pgp.db.oneOrNone(
-      'select * from users where email=$1;',
+      'select * from users where email ilike $1;',
       [mockedUsers[2].email],
     );
 

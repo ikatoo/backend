@@ -33,7 +33,7 @@ export class SkillsService {
       createSkillDto.userId,
     ]);
     const skillExist = await db.oneOrNone(
-      'select id from skills where title=$1',
+      'select id from skills where title ilike $1',
       [createSkillDto.title],
     );
     if (!userExist) throw new Error('User not found.');
