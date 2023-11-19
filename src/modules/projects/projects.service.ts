@@ -17,6 +17,7 @@ export class ProjectsService {
         description,
         snapshot,
         repository_link,
+        start,
         last_update
       ) values($1) returning id as "projectId";`,
       [
@@ -80,6 +81,7 @@ export class ProjectsService {
         description,
         snapshot,
         repository_link as repositoryLink,
+        start,
         last_update as lastUpdate
       from projects;`);
 
@@ -95,6 +97,7 @@ export class ProjectsService {
           description,
           snapshot,
           repository_link as repositoryLink,
+          start,
           last_update as lastUpdate 
         from projects, projects_on_users 
         where 
@@ -116,6 +119,7 @@ export class ProjectsService {
           description,
           snapshot,
           repository_link as repositoryLink,
+          start,
           last_update as lastUpdate 
         from projects
         where 
