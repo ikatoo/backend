@@ -36,7 +36,8 @@ CREATE TABLE "public"."projects" (
     "description" character varying NOT NULL,
     "snapshot" character varying NOT NULL,
     "repository_link" character varying NOT NULL,
-    "last_update" character varying NOT NULL,
+    "start" timestamp default now() NOT NULL,
+    "last_update" timestamp default now() NOT NULL,
     CONSTRAINT "projects_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
