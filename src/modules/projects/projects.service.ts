@@ -10,7 +10,6 @@ export class ProjectsService {
   async create(createProjectDto: CreateProjectDto) {
     const { skills, userId, ...projectDto } = createProjectDto;
 
-    // projeto
     const { projectId } = await this.pgp.db.oneOrNone(
       `insert into projects(
         title,
@@ -26,7 +25,6 @@ export class ProjectsService {
           .toString(),
       ],
     );
-    // relacionar o projeto ao usuario
     const projectOnUser = await this.pgp.db.oneOrNone(
       'select id from projects_on_users where project_id=$1 and user_id=$2',
       [projectId, userId],
@@ -39,7 +37,6 @@ export class ProjectsService {
       projectOnUser.id = newProjectOnUser.id;
     }
 
-    // skills
     skills.forEach(async (skill) => {
       const existSkill = await this.pgp.db.oneOrNone(
         'select * from skills where title ilike $1;',
