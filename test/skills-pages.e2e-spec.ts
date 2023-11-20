@@ -2,7 +2,7 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
-import { skillPageFactory } from 'src/test-utils/skill-page-factory';
+import { skillPageFactory } from 'src/test-utils/skill_page-factory';
 import request from 'supertest';
 import { userFactory } from '../src/test-utils/user-factory';
 import { AppModule } from './../src/app.module';
@@ -36,7 +36,6 @@ describe('SkillsPagesController (e2e)', () => {
     const expected = {
       ...page,
       projects: [],
-      userId,
     };
 
     expect(status).toEqual(200);
