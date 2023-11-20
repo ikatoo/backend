@@ -26,7 +26,7 @@ export class SkillsPageService {
 
   async findByUser(userId: number) {
     const skillPage = await this.pgp.db.oneOrNone<SkillsPage>(
-      `select id, title, description, user_id as "userId" from skills_pages as sp where user_id=$1;`,
+      `select id, title, description from skills_pages as sp where user_id=$1;`,
       [userId],
     );
     const projects = await this.pgp.db.manyOrNone<Project>(
