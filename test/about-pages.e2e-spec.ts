@@ -3,14 +3,13 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CreateAboutPageDto } from 'src/modules/about-page/dto/create-about-page.dto';
-import request from 'supertest';
-import { AppModule } from './../src/app.module';
-import { UpdateAboutPageDto } from 'src/modules/about-page/dto/update-about-page.dto';
-import { userFactory } from '../src/test-utils/user-factory';
 import {
   aboutPageFactory,
   mockedAboutPage,
-} from 'src/test-utils/about-page-factory';
+} from 'src/test-utils/about_page-factory';
+import request from 'supertest';
+import { userFactory } from '../src/test-utils/user-factory';
+import { AppModule } from './../src/app.module';
 
 describe('AboutPagesController (e2e)', () => {
   let app: INestApplication;
