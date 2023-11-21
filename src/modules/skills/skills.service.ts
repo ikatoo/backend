@@ -54,10 +54,10 @@ export class SkillsService {
     await this.pgp.db.none('delete from skills where id=$1', [id]);
   }
 
-  async removeOfTheUser(userId: number, skillId: string) {
+  async removeOfTheUserProject(projectOnUserId: number, skillId: number) {
     await this.pgp.db.none(
-      'delete from skills_on_users where user_id=$1 and skill_id=$2',
-      [userId, skillId],
+      'delete from skills_on_users_projects where project_on_user_id=$1 and skill_id=$2',
+      [projectOnUserId, skillId],
     );
   }
 
