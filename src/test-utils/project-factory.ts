@@ -3,17 +3,25 @@ import { CreateProjectDto } from 'src/modules/projects/dto/create-project.dto';
 
 const pgp = new PgPromiseService();
 
-const mockedProject: Omit<CreateProjectDto, 'skills' | 'userId'> = {
+export const mockedProject: Omit<CreateProjectDto, 'skills' | 'userId'> = {
   title: 'Mocked Title',
   description: 'Mocked description',
+  snapshot: 'https://mocked.com/snapshot',
   repositoryLink: 'https://mocked.link.com/repo',
   start: new Date('2021/12/12'),
   lastUpdate: new Date('2021/12/12'),
-  snapshot: 'https://mocked.com/snapshot',
 };
 
-export const projectFactory = async () =>
-  await pgp.db.oneOrNone(
+export const projectFactory = async (modifier?: () => void) => {
+  !!modifier && modifier();
+
+  const remmapedMock = {
+    ...mockedProject,
+    start: mockedProject.start.toISOString(),
+    lastUpdate: mockedProject.lastUpdate.toISOString(),
+  };
+
+  return await pgp.db.oneOrNone(
     `insert into projects(
         title,
         description,
@@ -21,10 +29,11 @@ export const projectFactory = async () =>
         repository_link,
         start,
         last_update
-    ) values($1) returning *;`,
+    ) values($1:raw) returning *;`,
     [
-      Object.values(mockedProject)
+      Object.values(remmapedMock)
         .map((value) => `'${value}'`)
         .toString(),
     ],
   );
+};
