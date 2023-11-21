@@ -3,7 +3,9 @@ import { SkillsService } from './skills.service';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { userFactory } from 'src/test-utils/user-factory';
 import { mockedSkill, skillFactory } from 'src/test-utils/skill-factory';
-import { skillOnUserFactory } from 'src/test-utils/skill_on_user-factory';
+import { skillOnUserProjectFactory } from 'src/test-utils/skill_on_user_project-factory';
+import { projectFactory } from 'src/test-utils/project-factory';
+import { projectOnUserFactory } from 'src/test-utils/project_on_user-factory';
 
 describe('SkillsService', () => {
   let skillsService: SkillsService;
@@ -26,7 +28,7 @@ describe('SkillsService', () => {
     expect(skillsService).toBeDefined();
   });
 
-  it('should create a skill relationated a user', async () => {
+  it('should create a skill relationated a user project', async () => {
     const { id: userId } = await userFactory();
     const mock = { title: 'Skill title', userId };
 
@@ -44,10 +46,15 @@ describe('SkillsService', () => {
     expect(createdSkill[0]).toEqual(expected);
   });
 
-  it('should get skill relationed with a user', async () => {
+  it('should get skill relationed with a user project', async () => {
     const { id: userId } = await userFactory();
+    const { id: projectId } = await projectFactory();
+    const { id: projectOnUserId } = await projectOnUserFactory(
+      projectId,
+      userId,
+    );
     const { id: skillId } = await skillFactory();
-    await skillOnUserFactory(+userId, +skillId);
+    await skillOnUserProjectFactory(skillId, projectOnUserId);
 
     const skills = await skillsService.findByUser(userId);
     const expected = [{ id: skills[0].id, ...mockedSkill }];
@@ -59,7 +66,6 @@ describe('SkillsService', () => {
     const newTitle = 'New Title';
     const { id: userId } = await userFactory();
     const { id: skillId, title: oldTitle } = await skillFactory();
-    await skillOnUserFactory(+userId, +skillId);
 
     await skillsService.update(skillId, newTitle);
     const updatedSkill = await pgp.db.many(
@@ -71,10 +77,9 @@ describe('SkillsService', () => {
     expect(updatedSkill[0].title).toEqual(newTitle);
   });
 
-  it('should delete the skill', async () => {
+  it('should remove the skill of the user project', async () => {
     const { id: userId } = await userFactory();
     const { id: skillId } = await skillFactory();
-    await skillOnUserFactory(+userId, +skillId);
 
     await skillsService.remove(skillId);
 
