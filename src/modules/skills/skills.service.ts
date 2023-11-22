@@ -11,16 +11,25 @@ export class SkillsService {
   }
 
   async findByUser(userId: number) {
-    const skills = await this.pgp.db.manyOrNone<{ id: number; title: string }>(
-      `
-        select 
-          skills.id as id,
-          skills.title as title
-        from skills, skills_on_users 
-        where 
-          skills_on_users.skill_id = skills.id and
-          skills_on_users.user_id = $1;
-      `,
+    const { db } = this.pgp;
+
+    const skills = await db.manyOrNone<{ id: number; title: string }>(
+      `select
+        skills.id as id,
+        skills.title as title
+      from
+        projects,
+        projects_on_users as pou,
+        users,
+        skills_on_users_projects as soup,
+        skills
+      where
+        users.id=$1 and
+        pou.user_id=users.id and
+        pou.project_id=projects.id and
+        soup.project_on_user_id=pou.id and
+        soup.skill_id=skills.id
+      ;`,
       [userId],
     );
 
@@ -29,14 +38,15 @@ export class SkillsService {
 
   async create(createSkillDto: CreateSkillDto) {
     const db = this.pgp.db;
-    const userExist = await db.oneOrNone('select * from users where id=$1', [
-      createSkillDto.userId,
-    ]);
+    const projectExist = await db.oneOrNone(
+      `select * from projects_on_users where project_id=$1 and user_id=$2`,
+      [createSkillDto.projectId, createSkillDto.userId],
+    );
     const skillExist = await db.oneOrNone(
       'select id from skills where title ilike $1',
       [createSkillDto.title],
     );
-    if (!userExist) throw new Error('User not found.');
+    if (!projectExist) throw new Error('Project not found.');
     const { id: skillId } =
       skillExist ??
       (await db.oneOrNone(
@@ -45,8 +55,10 @@ export class SkillsService {
       ));
 
     await db.none(
-      'insert into skills_on_users(skill_id, user_id) values($1, $2);',
-      [skillId, createSkillDto.userId],
+      `insert into skills_on_users_projects(
+        skill_id, project_on_user_id
+      ) values($1, $2);`,
+      [skillId, projectExist.id],
     );
   }
 

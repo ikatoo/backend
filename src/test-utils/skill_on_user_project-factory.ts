@@ -10,7 +10,7 @@ export const skillOnUserProjectFactory = async (
   !!modifier && modifier();
 
   return await db.oneOrNone(
-    `insert into skills_on_user_projects(
+    `insert into skills_on_users_projects(
         skill_id,
         project_on_user_id
     ) values($1, $2) returning *;`,
