@@ -30,18 +30,29 @@ describe('SkillsService', () => {
 
   it('should create a skill relationated a user project', async () => {
     const { id: userId } = await userFactory();
-    const mock = { title: 'Skill title', userId };
+    const { id: projectId } = await projectFactory();
+    await projectOnUserFactory(projectId, userId);
+    const mock = { title: 'Skill title', userId, projectId };
 
     await skillsService.create(mock);
     const createdSkill = await pgp.db.many(
       `select
         skills.id as id,
-        skills.title as title
-      from 
-        skills,
+        skills.title as title,
+        users.id as user_id
+      from
+        projects,
+        projects_on_users as pou,
+        users,
         skills_on_users_projects as soup,
-        projects_on_users as pou
-      where soup.skill_id=skills.id and pou.user_id=$1`,
+        skills
+      where
+        users.id=$1 and
+        pou.user_id=users.id and
+        pou.project_id=projects.id and
+        soup.project_on_user_id=pou.id and
+        soup.skill_id=skills.id
+      ;`,
       [userId],
     );
     const expected = {
@@ -56,12 +67,9 @@ describe('SkillsService', () => {
   it('should get skill relationed with a user project', async () => {
     const { id: userId } = await userFactory();
     const { id: projectId } = await projectFactory();
-    const { id: projectOnUserId } = await projectOnUserFactory(
-      projectId,
-      userId,
-    );
+    const { id: userProjectId } = await projectOnUserFactory(projectId, userId);
     const { id: skillId } = await skillFactory();
-    await skillOnUserProjectFactory(skillId, projectOnUserId);
+    await skillOnUserProjectFactory(skillId, userProjectId);
 
     const skills = await skillsService.findByUser(userId);
     const expected = [{ id: skills[0].id, ...mockedSkill }];
@@ -73,17 +81,23 @@ describe('SkillsService', () => {
     const newTitle = 'New Title';
     const { id: userId } = await userFactory();
     const { id: skillId, title: oldTitle } = await skillFactory();
+    const { id: projectId } = await projectFactory();
+    const { id: userProjectId } = await projectOnUserFactory(projectId, userId);
+    await skillOnUserProjectFactory(skillId, userProjectId);
 
     await skillsService.update(skillId, newTitle);
     const updatedSkill = await pgp.db.many(
       `select
-        skills.id as id,
         skills.title as title
-      from 
+      from
         skills,
         skills_on_users_projects as soup,
         projects_on_users as pou
-      where soup.skill_id=skills.id and pou.user_id=$1`,
+      where
+        soup.skill_id=skills.id and
+        soup.project_on_user_id=pou.id and
+        pou.user_id=$1
+      ;`,
       [userId],
     );
 
@@ -91,50 +105,32 @@ describe('SkillsService', () => {
     expect(updatedSkill[0].title).toEqual(newTitle);
   });
 
-  it('should remove the skill of the user project', async () => {
-    const { id: userId } = await userFactory();
-    const { id: skillId } = await skillFactory();
-    const { id: projecId } = await projectFactory();
-    const { id: projectOnUserId } = await projectOnUserFactory(
-      projecId,
-      userId,
-    );
-    await skillOnUserProjectFactory(skillId, projectOnUserId);
-
-    await skillsService.remove(skillId);
-
-    const removedSkill = await pgp.db.oneOrNone(
-      'select * from skills where id=$1',
-      [skillId],
-    );
-
-    expect(removedSkill).toBeNull();
-  });
-
   it('should remove skill of the user project but not delete the skill', async () => {
     const { id: userId } = await userFactory();
-    const { id: skillId } = await skillFactory();
+    const { id: skillId, title } = await skillFactory();
     const { id: projectId } = await projectFactory();
-    const { id: projectOnUserId } = await projectOnUserFactory(
-      projectId,
-      userId,
+    const { id: userProjectId } = await projectOnUserFactory(projectId, userId);
+    await skillOnUserProjectFactory(skillId, userProjectId);
+
+    await skillsService.removeOfTheUserProject(userProjectId, skillId);
+
+    const removedSkillOnProject = await pgp.db.oneOrNone(
+      `select
+        skills.id as id,
+        skills.title as title
+      from
+        skills,
+        skills_on_users_projects as soup,
+        projects_on_users as pou
+      where soup.skill_id=$1 and pou.user_id=$2`,
+      [skillId, userId],
     );
-    await skillOnUserProjectFactory(skillId, projectOnUserId);
+    const skill = await pgp.db.one('select * from skills where id=$1', [
+      skillId,
+    ]);
 
-    // await skillsService.removeOfTheUserProject(projectOnUserId, skillId);
-
-    // const removedSkill = await pgp.db.oneOrNone(
-    //   `select
-    //     skills.id as id,
-    //     skills.title as title
-    //   from
-    //     skills,
-    //     skills_on_users_projects as soup,
-    //     projects_on_users as pou
-    //   where soup.skill_id=$1 and pou.user_id=$2`,
-    //   [skillId, userId],
-    // );
-
-    // expect(removedSkill).toBeNull();
+    expect(removedSkillOnProject).toBeNull();
+    expect(skill).toBeDefined();
+    expect(skill.title).toEqual(title);
   });
 });
