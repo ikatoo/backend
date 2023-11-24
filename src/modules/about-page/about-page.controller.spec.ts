@@ -3,6 +3,7 @@ import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { userFactory } from 'src/test-utils/user-factory';
 import { AboutPageController } from './about-page.controller';
 import { AboutPageService } from './about-page.service';
+import { AppModule } from 'src/app.module';
 
 describe('AboutPageController', () => {
   let aboutPageController: AboutPageController;
@@ -36,6 +37,7 @@ describe('AboutPageController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AboutPageController],
       providers: [AboutPageService, PgPromiseService],
+      imports: [AppModule],
     }).compile();
 
     aboutPageController = module.get<AboutPageController>(AboutPageController);
@@ -52,11 +54,13 @@ describe('AboutPageController', () => {
   it('should be create the about page', async () => {
     const { id: userId } = await userFactory();
     const { image_alt: imageAlt, image_url: imageUrl, ...data } = pageMock;
-    await aboutPageController.create({
-      ...data,
-      userId,
-      image: { imageAlt, imageUrl },
-    });
+    await aboutPageController.create(
+      { user: { sub: { id: userId } } },
+      {
+        ...data,
+        image: { imageAlt, imageUrl },
+      },
+    );
     const createdPage = await pgp.db.one(
       'select * from about_pages where user_id=$1',
       [userId],
@@ -80,7 +84,10 @@ describe('AboutPageController', () => {
         imageAlt: pageMock.image_alt,
       },
     };
-    await aboutPageController.update(user_id + '', newValues);
+    await aboutPageController.update(
+      { user: { sub: { id: user_id } } },
+      newValues,
+    );
 
     const updatedPage = await pgp.db.one(
       'select * from about_pages where user_id=$1;',
@@ -115,7 +122,7 @@ describe('AboutPageController', () => {
     const { id: user_id } = await userFactory();
     await pageFactory(user_id);
 
-    await aboutPageController.remove(user_id + '');
+    await aboutPageController.remove({ user: { sub: { id: user_id } } });
 
     const deletedPage = await pgp.db.oneOrNone(
       'select * from about_pages where user_id=$1',
