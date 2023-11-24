@@ -10,7 +10,8 @@ Content-Type: application/json
 {
   "name": "Teste",
   "email": "teste@teste.com",
-  "password": "senhateste"
+  "password": "teste",
+  "enabled": true
 }
 
 ###

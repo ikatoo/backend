@@ -8,12 +8,17 @@ import {
   mockedAboutPage,
 } from 'src/test-utils/about_page-factory';
 import request from 'supertest';
-import { userFactory } from '../src/test-utils/user-factory';
+import { mockedUser, userFactory } from '../src/test-utils/user-factory';
 import { AppModule } from './../src/app.module';
+import { AuthService } from 'src/modules/auth/auth.service';
+import { UsersService } from 'src/modules/user/user.service';
+import { accessTokenFactory } from 'src/test-utils/access_token-factory';
 
 describe('AboutPagesController (e2e)', () => {
   let app: INestApplication;
   let pgp: PgPromiseService;
+  let authService: AuthService;
+  let userService: UsersService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -22,6 +27,9 @@ describe('AboutPagesController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     pgp = moduleFixture.get<PgPromiseService>(PgPromiseService);
+    authService = moduleFixture.get<AuthService>(AuthService);
+    userService = moduleFixture.get<UsersService>(UsersService);
+
     await app.init();
     await pgp.db.none('delete from users;');
     await pgp.db.none('delete from about_pages;');
@@ -47,7 +55,7 @@ describe('AboutPagesController (e2e)', () => {
   });
 
   it('/about (POST)', async () => {
-    const { id: userId } = await userFactory();
+    const { id: userId, hash_password: password, email } = await userFactory();
 
     const data: CreateAboutPageDto = {
       title: mockedAboutPage.title,
@@ -59,8 +67,11 @@ describe('AboutPagesController (e2e)', () => {
       userId,
     };
 
+    const token = await accessTokenFactory(email, password);
+
     const { body, status } = await request(app.getHttpServer())
       .post('/about')
+      .set('Authorization', `Bearer ${token}`)
       .send(data);
     const createdPage = await pgp.db.one(
       'select * from about_pages where user_id=$1;',
@@ -78,7 +89,7 @@ describe('AboutPagesController (e2e)', () => {
   });
 
   it('/about/user-id/:userId (PATCH)', async () => {
-    const { id: userId } = await userFactory();
+    const { id: userId, email, hash_password: password } = await userFactory();
     const newValues = {
       title: 'New Title',
       image_url: 'new-image.jpg',
@@ -94,8 +105,10 @@ describe('AboutPagesController (e2e)', () => {
       },
     };
 
+    const token = await accessTokenFactory(email, password);
     const { body, status } = await request(app.getHttpServer())
       .patch(`/about/user-id/${userId}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(data);
 
     const updatedPage = await pgp.db.one(
@@ -117,14 +130,16 @@ describe('AboutPagesController (e2e)', () => {
   });
 
   it('/about/user-id/:userId (DELETE)', async () => {
-    const { id } = await userFactory();
+    const { id, email, hash_password: password } = await userFactory();
     const aboutPage = await aboutPageFactory(id);
 
     expect(aboutPage).toBeDefined();
 
-    const { body, status } = await request(app.getHttpServer()).delete(
-      `/about/user-id/${id}`,
-    );
+    const token = await accessTokenFactory(email, password);
+    const { body, status } = await request(app.getHttpServer())
+      .delete(`/about/user-id/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
     const deletedPage = await pgp.db.oneOrNone({
       text: 'select * from about_pages where user_id=$1',
       values: [id],
