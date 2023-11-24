@@ -29,13 +29,13 @@ describe('AboutPagesController (e2e)', () => {
     await pgp.db.none('delete from about_pages;');
   });
 
-  it('/about/user-id/:userId (GET)', async () => {
+  it('/about-page/user-id/:userId (GET)', async () => {
     const createdUser = await userFactory();
 
     const createdPage = await aboutPageFactory(createdUser.id);
 
     const { body, status } = await request(app.getHttpServer()).get(
-      `/about/user-id/${createdUser.id}`,
+      `/about-page/user-id/${createdUser.id}`,
     );
 
     const { image_alt, image_url, user_id, ...page } = createdPage;
@@ -48,7 +48,7 @@ describe('AboutPagesController (e2e)', () => {
     expect(body).toEqual(expected);
   });
 
-  it('/about (POST)', async () => {
+  it('/about-page (POST)', async () => {
     const { id: userId, hash_password: password, email } = await userFactory();
 
     const data: CreateAboutPageDto = {
@@ -63,7 +63,7 @@ describe('AboutPagesController (e2e)', () => {
     const token = await accessTokenFactory(email, password);
 
     const { body, status } = await request(app.getHttpServer())
-      .post('/about')
+      .post('/about-page')
       .set('Authorization', `Bearer ${token}`)
       .send(data);
     const createdPage = await pgp.db.one(
@@ -81,7 +81,7 @@ describe('AboutPagesController (e2e)', () => {
     expect(createdPage).toEqual(expected);
   });
 
-  it('/about (PATCH)', async () => {
+  it('/about-page (PATCH)', async () => {
     const { id: userId, email, hash_password: password } = await userFactory();
     const newValues = {
       title: 'New Title',
@@ -100,7 +100,7 @@ describe('AboutPagesController (e2e)', () => {
 
     const token = await accessTokenFactory(email, password);
     const { body, status } = await request(app.getHttpServer())
-      .patch('/about')
+      .patch('/about-page')
       .set('Authorization', `Bearer ${token}`)
       .send(data);
 
@@ -122,7 +122,7 @@ describe('AboutPagesController (e2e)', () => {
     expect(updatedPage).toEqual(expected);
   });
 
-  it('/about (DELETE)', async () => {
+  it('/about-page (DELETE)', async () => {
     const { id, email, hash_password: password } = await userFactory();
     const aboutPage = await aboutPageFactory(id);
 
@@ -130,7 +130,7 @@ describe('AboutPagesController (e2e)', () => {
 
     const token = await accessTokenFactory(email, password);
     const { body, status } = await request(app.getHttpServer())
-      .delete('/about')
+      .delete('/about-page')
       .set('Authorization', `Bearer ${token}`)
       .send();
     const deletedPage = await pgp.db.oneOrNone({

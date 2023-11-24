@@ -15,7 +15,7 @@ import { CreateAboutPageDto } from './dto/create-about-page.dto';
 import { UpdateAboutPageDto } from './dto/update-about-page.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
-@Controller('about')
+@Controller('about-page')
 export class AboutPageController {
   constructor(private readonly aboutPageService: AboutPageService) {}
 
