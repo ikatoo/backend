@@ -32,7 +32,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const payload = { sub: user.id };
+    const payload = { sub: user };
     const access_token = await this.jwtService.signAsync(payload);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return { user: { id: user.id }, access_token };

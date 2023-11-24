@@ -7,15 +7,18 @@ import {
   Param,
   Delete,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { AboutPageService } from './about-page.service';
 import { CreateAboutPageDto } from './dto/create-about-page.dto';
 import { UpdateAboutPageDto } from './dto/update-about-page.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('about')
 export class AboutPageController {
   constructor(private readonly aboutPageService: AboutPageService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   create(@Body() createAboutPageDto: CreateAboutPageDto) {
     return this.aboutPageService.create(createAboutPageDto);
@@ -27,6 +30,7 @@ export class AboutPageController {
     return page;
   }
 
+  @UseGuards(AuthGuard)
   @HttpCode(204)
   @Patch('user-id/:userId')
   update(
@@ -36,6 +40,7 @@ export class AboutPageController {
     return this.aboutPageService.update(+userId, updateAboutPageDto);
   }
 
+  @UseGuards(AuthGuard)
   @HttpCode(204)
   @Delete('user-id/:userId')
   remove(@Param('userId') userId: string) {
