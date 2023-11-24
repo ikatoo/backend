@@ -5,5 +5,4 @@ export type CreateAboutPageDto = {
     imageUrl?: string;
     imageAlt?: string;
   };
-  userId: number;
 };

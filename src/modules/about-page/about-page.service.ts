@@ -7,7 +7,7 @@ import { UpdateAboutPageDto } from './dto/update-about-page.dto';
 export class AboutPageService {
   constructor(private readonly pgp: PgPromiseService) {}
 
-  async create(createAboutPageDto: CreateAboutPageDto) {
+  async create(createAboutPageDto: CreateAboutPageDto & { userId: number }) {
     await this.pgp.db.none('insert into about_pages($1:raw) values ($2:raw);', [
       `
         "user_id","title","description"

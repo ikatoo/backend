@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AboutPageService } from './about-page.service';
 import { CreateAboutPageDto } from './dto/create-about-page.dto';
@@ -20,8 +21,9 @@ export class AboutPageController {
 
   @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createAboutPageDto: CreateAboutPageDto) {
-    return this.aboutPageService.create(createAboutPageDto);
+  create(@Request() req, @Body() createAboutPageDto: CreateAboutPageDto) {
+    const { id: userId } = req.user.sub;
+    return this.aboutPageService.create({ ...createAboutPageDto, userId });
   }
 
   @Get('user-id/:userId')
@@ -32,18 +34,17 @@ export class AboutPageController {
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  @Patch('user-id/:userId')
-  update(
-    @Param('userId') userId: string,
-    @Body() updateAboutPageDto: UpdateAboutPageDto,
-  ) {
+  @Patch()
+  update(@Request() req, @Body() updateAboutPageDto: UpdateAboutPageDto) {
+    const { id: userId } = req.user.sub;
     return this.aboutPageService.update(+userId, updateAboutPageDto);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  @Delete('user-id/:userId')
-  remove(@Param('userId') userId: string) {
+  @Delete()
+  remove(@Request() req) {
+    const { id: userId } = req.user.sub;
     return this.aboutPageService.remove(+userId);
   }
 }
