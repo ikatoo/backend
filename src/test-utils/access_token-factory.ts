@@ -19,7 +19,7 @@ export const accessTokenFactory = async (email: string, password: string) => {
     'select * from users where email=$1',
     [email],
   );
-  await userService.update(userId, { password });
+  await userService.update(userId, { password, enabled: true });
 
   const { access_token } = await authService.signIn({
     email,

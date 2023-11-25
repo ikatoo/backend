@@ -5,10 +5,13 @@ import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
+import { accessTokenFactory } from 'src/test-utils/access_token-factory';
+import { UsersService } from 'src/modules/user/user.service';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
   let pgp: PgPromiseService;
+  let usersService: UsersService;
   const { compareHash } = new CryptoService();
   const usersMock = [
     {
@@ -30,6 +33,8 @@ describe('UserController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     pgp = moduleFixture.get<PgPromiseService>(PgPromiseService);
+    usersService = moduleFixture.get<UsersService>(UsersService);
+
     await app.init();
     await pgp.db.none('delete from users;');
   });
@@ -85,8 +90,13 @@ describe('UserController (e2e)', () => {
       `insert into users(name, email, hash_password) values(${values}) returning id;`,
     );
 
+    const token = await accessTokenFactory(
+      usersMock[0].email,
+      usersMock[0].password,
+    );
     const { body, status } = await request(app.getHttpServer())
-      .patch(`/user/${userId}`)
+      .patch(`/user`)
+      .set('Authorization', `Bearer ${token}`)
       .send({ name: 'Updated User' });
     const { hash, ...updatedUser } = await pgp.db.oneOrNone(
       'select id, name, email, hash_password as hash from users where id=$1;',
@@ -112,9 +122,14 @@ describe('UserController (e2e)', () => {
     );
     const { id } = user;
 
-    const { body, status } = await request(app.getHttpServer()).delete(
-      `/user/${id}`,
+    const token = await accessTokenFactory(
+      usersMock[0].email,
+      usersMock[0].password,
     );
+    const { body, status } = await request(app.getHttpServer())
+      .delete(`/user`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
     const deletedUser = await pgp.db.oneOrNone({
       text: 'select name, email, hash_password from users where id=$1',
       values: [id],

@@ -1,21 +1,25 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
   HttpCode,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
 import { ContactPageService } from './contact-page.service';
 import { CreateContactPageDto } from './dto/create-contact-page.dto';
 import { UpdateContactPageDto } from './dto/update-contact-page.dto';
 
-@Controller('contact')
+@Controller('contact-page')
 export class ContactPageController {
   constructor(private readonly contactPageService: ContactPageService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   create(@Body() createContactPageDto: CreateContactPageDto) {
     return this.contactPageService.create(createContactPageDto);
@@ -26,18 +30,19 @@ export class ContactPageController {
     return this.contactPageService.findByUser(+userId);
   }
 
+  @UseGuards(AuthGuard)
   @HttpCode(204)
-  @Patch('/user-id/:userId')
-  update(
-    @Param('userId') userId: string,
-    @Body() updateContactPageDto: UpdateContactPageDto,
-  ) {
+  @Patch()
+  update(@Request() req, @Body() updateContactPageDto: UpdateContactPageDto) {
+    const { id: userId } = req.user.sub;
     return this.contactPageService.update(+userId, updateContactPageDto);
   }
 
+  @UseGuards(AuthGuard)
   @HttpCode(204)
-  @Delete('/user-id/:userId')
-  remove(@Param('userId') userId: string) {
+  @Delete()
+  remove(@Request() req) {
+    const { id: userId } = req.user.sub;
     return this.contactPageService.remove(+userId);
   }
 }

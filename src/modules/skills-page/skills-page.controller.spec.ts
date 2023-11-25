@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test, TestingModule } from '@nestjs/testing';
+import { AppModule } from 'src/app.module';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
-import { mockedProject, projectFactory } from 'src/test-utils/project-factory';
-import { projectOnUserFactory } from 'src/test-utils/project_on_user-factory';
-import { skillPageFactory } from 'src/test-utils/skill_page-factory';
 import { userFactory } from 'src/test-utils/user-factory';
 import { SkillsPageController } from './skills-page.controller';
 import { SkillsPageService } from './skills-page.service';
@@ -16,6 +14,7 @@ describe('SkillsPageController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SkillsPageController],
       providers: [SkillsPageService, PgPromiseService],
+      imports: [AppModule],
     }).compile();
 
     skillsPageController =
