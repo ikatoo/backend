@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { SkillsService } from './skills.service';
 
@@ -6,6 +15,7 @@ import { SkillsService } from './skills.service';
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   create(@Body() createSkillDto: CreateSkillDto) {
     return this.skillsService.create(createSkillDto);
@@ -21,6 +31,7 @@ export class SkillsController {
     return this.skillsService.findByUser(+id);
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.skillsService.remove(+id);

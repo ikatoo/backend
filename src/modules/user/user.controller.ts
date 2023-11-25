@@ -3,10 +3,12 @@ import {
   Controller,
   Delete,
   HttpCode,
-  Param,
   Patch,
   Post,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
 import { User, UserWithoutId } from './IUserService';
 import { UsersService } from './user.service';
 
@@ -19,15 +21,19 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
+  @UseGuards(AuthGuard)
   @HttpCode(204)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UserWithoutId) {
+  @Patch()
+  update(@Request() req, @Body() updateUserDto: UserWithoutId) {
+    const { id } = req.user.sub;
     return this.userService.update(+id, updateUserDto);
   }
 
+  @UseGuards(AuthGuard)
   @HttpCode(204)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @Delete()
+  remove(@Request() req) {
+    const { id } = req.user.sub;
     return this.userService.remove(+id);
   }
 }
