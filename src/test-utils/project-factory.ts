@@ -15,6 +15,13 @@ export const mockedProject: Omit<CreateProjectDto, 'skills' | 'userId'> = {
 export const projectFactory = async (modifier?: () => void) => {
   !!modifier && modifier();
 
+  const projectExists = await pgp.db.oneOrNone(
+    'select * from projects where title=$1;',
+    [mockedProject.title],
+  );
+  if (!!projectExists)
+    await pgp.db.none('delete from projects where id=$1;', [projectExists.id]);
+
   const remmapedMock = {
     ...mockedProject,
     start: mockedProject.start.toISOString(),
