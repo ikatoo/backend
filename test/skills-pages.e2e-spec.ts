@@ -2,10 +2,15 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
-import { skillPageFactory } from 'src/test-utils/skill_page-factory';
+import {
+  mockedSkillsPage,
+  skillPageFactory,
+} from 'src/test-utils/skill_page-factory';
 import request from 'supertest';
 import { userFactory } from '../src/test-utils/user-factory';
 import { AppModule } from './../src/app.module';
+import { CreateSkillsPageDto } from 'src/modules/skills-page/dto/create-skills-page.dto';
+import { accessTokenFactory } from 'src/test-utils/access_token-factory';
 
 describe('SkillsPagesController (e2e)', () => {
   let app: INestApplication;
@@ -23,7 +28,7 @@ describe('SkillsPagesController (e2e)', () => {
     await pgp.db.none('delete from skills_pages;');
   });
 
-  it('/skills/user-id/:userId (GET)', async () => {
+  it('/skills-page/user-id/:userId (GET)', async () => {
     const createdUser = await userFactory();
 
     const createdPage = await skillPageFactory(createdUser.id);
@@ -42,36 +47,33 @@ describe('SkillsPagesController (e2e)', () => {
     expect(body).toEqual(expected);
   });
 
-  // it('/skills (POST)', async () => {
-  //   const { id: userId } = await userFactory();
+  it('/skills-page (POST)', async () => {
+    const { id: userId, email, hash_password } = await userFactory();
 
-  //   const data: CreateSkillsPageDto = {
-  //     title: mockedSkillsPage.title,
-  //     description: mockedSkillsPage.description,
-  //     image: {
-  //       imageUrl: mockedSkillsPage.image_url,
-  //       imageAlt: mockedSkillsPage.image_alt,
-  //     },
-  //     userId,
-  //   };
+    const data: CreateSkillsPageDto = {
+      title: mockedSkillsPage.title,
+      description: mockedSkillsPage.description,
+    };
 
-  //   const { body, status } = await request(app.getHttpServer())
-  //     .post('/skills')
-  //     .send(data);
-  //   const createdPage = await pgp.db.one(
-  //     'select * from about_pages where user_id=$1;',
-  //     [userId],
-  //   );
-  //   const expected = {
-  //     id: createdPage.id,
-  //     ...mockedSkillsPage,
-  //     user_id: userId,
-  //   };
+    const token = await accessTokenFactory(email, hash_password);
+    const { body, status } = await request(app.getHttpServer())
+      .post('/skills-page')
+      .set('Authorization', `Bearer ${token}`)
+      .send(data);
+    const createdPage = await pgp.db.one(
+      'select * from about_pages where user_id=$1;',
+      [userId],
+    );
+    const expected = {
+      id: createdPage.id,
+      ...mockedSkillsPage,
+      user_id: userId,
+    };
 
-  //   expect(body).toEqual({});
-  //   expect(status).toEqual(201);
-  //   expect(createdPage).toEqual(expected);
-  // });
+    expect(body).toEqual({});
+    expect(status).toEqual(201);
+    expect(createdPage).toEqual(expected);
+  });
 
   // it('/skills/user-id/:userId (PATCH)', async () => {
   //   const { id: userId } = await userFactory();
