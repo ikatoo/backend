@@ -10,7 +10,7 @@ export type SkillsPage = CreateSkillsPageDto & { id: number; user_id: number };
 export class SkillsPageService {
   constructor(private readonly pgp: PgPromiseService) {}
 
-  async create(createSkillsPageDto: CreateSkillsPageDto) {
+  async create(createSkillsPageDto: CreateSkillsPageDto & { userId: number }) {
     const fields = Object.keys(createSkillsPageDto)
       .map((field) => `"${field}"`)
       .toString();
@@ -45,16 +45,15 @@ export class SkillsPageService {
     const projectsWithSkills = projects.map(async (project) => {
       const skills = await this.pgp.db.manyOrNone<{ title: string }>(
         `select
-          skills.title
+          skills.id as id,
+          skills.title as title
         from 
           skills,
-          skills_on_users as sou,
-          skills_of_user_on_projects as sup,
+          skills_on_users_projects as soup,
           projects_on_users as pou
         where
-          sou.skill_id=skills.id and
-          sup.skill_user_id=sou.id and
-          sup.project_user_id=pou.id and
+          soup.skill_id=skills.id and
+          soup.project_on_user_id=pou.id and
           pou.project_id=$1 and
           pou.user_id=$2
         ;`,
@@ -63,7 +62,10 @@ export class SkillsPageService {
       return { ...project, skills };
     });
 
-    return { ...skillPage, projects: projectsWithSkills };
+    return {
+      ...skillPage,
+      projects: [...(await Promise.all(projectsWithSkills))],
+    };
   }
 
   async update(userId: number, updateSkillsPageDto: UpdateSkillsPageDto) {

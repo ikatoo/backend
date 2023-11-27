@@ -11,8 +11,22 @@ export const mockedAboutPage = {
 
 type AboutPage = typeof mockedAboutPage & { id: number; user_id: number };
 
-export const aboutPageFactory = async (user_id: number) =>
-  await pgp.db.one<AboutPage>(
+export const aboutPageFactory = async (
+  user_id: number,
+  modifier?: () => void,
+) => {
+  !!modifier && modifier();
+
+  const aboutPageExists = await pgp.db.oneOrNone(
+    'select * from about_pages where user_id=$1;',
+    [user_id],
+  );
+  if (!!aboutPageExists)
+    await pgp.db.none('delete from about_pages where id=$1;', [
+      aboutPageExists.id,
+    ]);
+
+  return await pgp.db.one<AboutPage>(
     `insert into about_pages(
       user_id, 
       title, 
@@ -27,3 +41,4 @@ export const aboutPageFactory = async (user_id: number) =>
       '${mockedAboutPage.image_alt}'
     ) returning *;`,
   );
+};

@@ -9,7 +9,21 @@ const mockedContactPage = {
   email: 'mocked@mail.com',
 };
 
-export const contactPageFactory = async (userId: number) => {
+export const contactPageFactory = async (
+  userId: number,
+  modifier?: () => void,
+) => {
+  !!modifier && modifier();
+
+  const contactPageExists = await db.oneOrNone(
+    'select * from contact_pages where user_id=$1;',
+    [userId],
+  );
+  if (!!contactPageExists)
+    await db.none('delete from contact_pages where id=$1;', [
+      contactPageExists.id,
+    ]);
+
   const values = { ...mockedContactPage, userId };
 
   return await db.oneOrNone(

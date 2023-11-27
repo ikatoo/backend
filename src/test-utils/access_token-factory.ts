@@ -14,7 +14,13 @@ const jwtService = new JwtService({
 const authService = new AuthService(pgp, crypto, jwtService);
 const userService = new UsersService(pgp, crypto);
 
-export const accessTokenFactory = async (email: string, password: string) => {
+export const accessTokenFactory = async (
+  email: string,
+  password: string,
+  modifier?: () => void,
+) => {
+  !!modifier && modifier();
+
   const { id: userId } = await pgp.db.one(
     'select * from users where email=$1',
     [email],
