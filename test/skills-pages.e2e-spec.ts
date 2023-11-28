@@ -116,22 +116,25 @@ describe('SkillsPagesController (e2e)', () => {
     expect(updatedPage).toEqual(expected);
   });
 
-  // it('/skills/user-id/:userId (DELETE)', async () => {
-  //   const { id } = await userFactory();
-  //   const aboutPage = await aboutPageFactory(id);
+  it('/skills/user-id/:userId (DELETE)', async () => {
+    const createdUser = await userFactory();
+    await skillPageFactory(createdUser.id);
 
-  //   expect(aboutPage).toBeDefined();
+    const token = await accessTokenFactory(
+      createdUser.email,
+      createdUser.password,
+    );
+    const { body, status } = await request(app.getHttpServer())
+      .delete(`/skills-page`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
+    const deletedPage = await pgp.db.oneOrNone({
+      text: 'select * from skills_pages where user_id=$1',
+      values: [createdUser.id],
+    });
 
-  //   const { body, status } = await request(app.getHttpServer()).delete(
-  //     `/skills/user-id/${id}`,
-  //   );
-  //   const deletedPage = await pgp.db.oneOrNone({
-  //     text: 'select * from about_pages where user_id=$1',
-  //     values: [id],
-  //   });
-
-  //   expect(status).toEqual(204);
-  //   expect(body).toEqual({});
-  //   expect(deletedPage).toBeNull();
-  // });
+    expect(status).toEqual(204);
+    expect(body).toEqual({});
+    expect(deletedPage).toBeNull();
+  });
 });
