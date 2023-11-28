@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { randomBytes } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CreateAboutPageDto } from 'src/modules/about-page/dto/create-about-page.dto';
-import {
-  aboutPageFactory,
-  mockedAboutPage,
-} from 'src/test-utils/about_page-factory';
+import { aboutPageFactory } from 'src/test-utils/about_page-factory';
 import { accessTokenFactory } from 'src/test-utils/access_token-factory';
 import request from 'supertest';
 import { userFactory } from '../src/test-utils/user-factory';
@@ -25,8 +23,6 @@ describe('AboutPagesController (e2e)', () => {
     pgp = moduleFixture.get<PgPromiseService>(PgPromiseService);
 
     await app.init();
-    await pgp.db.none('delete from users;');
-    await pgp.db.none('delete from about_pages;');
   });
 
   it('/about-page/user-id/:userId (GET)', async () => {
@@ -49,31 +45,38 @@ describe('AboutPagesController (e2e)', () => {
   });
 
   it('/about-page (POST)', async () => {
-    const { id: userId, hash_password: password, email } = await userFactory();
+    const createdUser = await userFactory();
 
-    const data: CreateAboutPageDto = {
-      title: mockedAboutPage.title,
-      description: mockedAboutPage.description,
+    const randomTestId = randomBytes(10).toString('hex');
+    const mockedData: CreateAboutPageDto = {
+      title: `${randomTestId} title`,
+      description: `${randomTestId} description`,
       image: {
-        imageUrl: mockedAboutPage.image_url,
-        imageAlt: mockedAboutPage.image_alt,
+        imageUrl: `https://image_url.com/${randomTestId}.png`,
+        imageAlt: `${randomTestId} image_alt`,
       },
     };
 
-    const token = await accessTokenFactory(email, password);
+    const token = await accessTokenFactory(
+      createdUser.email,
+      createdUser.password,
+    );
 
     const { body, status } = await request(app.getHttpServer())
       .post('/about-page')
       .set('Authorization', `Bearer ${token}`)
-      .send(data);
+      .send(mockedData);
     const createdPage = await pgp.db.one(
       'select * from about_pages where user_id=$1;',
-      [userId],
+      [createdUser.id],
     );
     const expected = {
       id: createdPage.id,
-      ...mockedAboutPage,
-      user_id: userId,
+      title: mockedData.title,
+      description: mockedData.description,
+      image_url: mockedData.image.imageUrl,
+      image_alt: mockedData.image.imageAlt,
+      user_id: createdUser.id,
     };
 
     expect(body).toEqual({});
@@ -82,13 +85,14 @@ describe('AboutPagesController (e2e)', () => {
   });
 
   it('/about-page (PATCH)', async () => {
-    const { id: userId, email, hash_password: password } = await userFactory();
+    const createdUser = await userFactory();
+    const randomTestId = randomBytes(10).toString('hex');
     const newValues = {
-      title: 'New Title',
-      image_url: 'new-image.jpg',
-      image_alt: 'new-image alt',
+      title: `New Title ${randomTestId}`,
+      image_url: `https://image_url.com/new-image-${randomTestId}.jpg`,
+      image_alt: `new-image alt ${randomTestId}`,
     };
-    const { id: pageId } = await aboutPageFactory(userId);
+    const existentPage = await aboutPageFactory(createdUser.id);
 
     const data = {
       title: newValues.title,
@@ -98,7 +102,10 @@ describe('AboutPagesController (e2e)', () => {
       },
     };
 
-    const token = await accessTokenFactory(email, password);
+    const token = await accessTokenFactory(
+      createdUser.email,
+      createdUser.password,
+    );
     const { body, status } = await request(app.getHttpServer())
       .patch('/about-page')
       .set('Authorization', `Bearer ${token}`)
@@ -106,15 +113,15 @@ describe('AboutPagesController (e2e)', () => {
 
     const updatedPage = await pgp.db.one(
       'select * from about_pages where user_id=$1;',
-      [userId],
+      [createdUser.id],
     );
     const expected = {
-      id: pageId,
+      id: existentPage.id,
       title: newValues.title,
-      description: mockedAboutPage.description,
+      description: existentPage.description,
       image_url: newValues.image_url,
       image_alt: newValues.image_alt,
-      user_id: userId,
+      user_id: createdUser.id,
     };
 
     expect(body).toEqual({});
@@ -123,19 +130,22 @@ describe('AboutPagesController (e2e)', () => {
   });
 
   it('/about-page (DELETE)', async () => {
-    const { id, email, hash_password: password } = await userFactory();
-    const aboutPage = await aboutPageFactory(id);
+    const createdUser = await userFactory();
+    const aboutPage = await aboutPageFactory(createdUser.id);
 
     expect(aboutPage).toBeDefined();
 
-    const token = await accessTokenFactory(email, password);
+    const token = await accessTokenFactory(
+      createdUser.email,
+      createdUser.password,
+    );
     const { body, status } = await request(app.getHttpServer())
       .delete('/about-page')
       .set('Authorization', `Bearer ${token}`)
       .send();
     const deletedPage = await pgp.db.oneOrNone({
       text: 'select * from about_pages where user_id=$1',
-      values: [id],
+      values: [createdUser.id],
     });
 
     expect(status).toEqual(204);

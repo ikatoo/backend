@@ -10,7 +10,7 @@ export type SkillsPage = CreateSkillsPageDto & { id: number; user_id: number };
 export class SkillsPageService {
   constructor(private readonly pgp: PgPromiseService) {}
 
-  async create(createSkillsPageDto: CreateSkillsPageDto & { userId: number }) {
+  async create(createSkillsPageDto: CreateSkillsPageDto & { user_id: number }) {
     const fields = Object.keys(createSkillsPageDto)
       .map((field) => `"${field}"`)
       .toString();

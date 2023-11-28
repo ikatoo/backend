@@ -1,26 +1,23 @@
+import { randomBytes, randomInt } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CreateProjectDto } from 'src/modules/projects/dto/create-project.dto';
 
 const pgp = new PgPromiseService();
 
-export const mockedProject: Omit<CreateProjectDto, 'skills' | 'userId'> = {
-  title: 'Mocked Title',
-  description: 'Mocked description',
-  snapshot: 'https://mocked.com/snapshot',
-  repositoryLink: 'https://mocked.link.com/repo',
-  start: new Date('2021/12/12'),
-  lastUpdate: new Date('2021/12/12'),
-};
+export const projectFactory = async () => {
+  const randomTestId = randomBytes(10).toString('hex');
+  const start = new Date(`2021/${randomInt(1, 13)}/${randomInt(1, 28)}`);
+  const lastUpdate = new Date();
+  lastUpdate.setDate(start.getDate() + randomInt(500));
 
-export const projectFactory = async (modifier?: () => void) => {
-  !!modifier && modifier();
-
-  const projectExists = await pgp.db.oneOrNone(
-    'select * from projects where title=$1;',
-    [mockedProject.title],
-  );
-  if (!!projectExists)
-    await pgp.db.none('delete from projects where id=$1;', [projectExists.id]);
+  const mockedProject: Omit<CreateProjectDto, 'skills' | 'userId'> = {
+    title: `Mocked Title ${randomTestId}`,
+    description: `Mocked description ${randomTestId}`,
+    snapshot: `https://mocked.com/snapshot/${randomTestId}.png`,
+    repositoryLink: `https://mocked.link.com/repo/${randomTestId}`,
+    start,
+    lastUpdate,
+  };
 
   const remmapedMock = {
     ...mockedProject,

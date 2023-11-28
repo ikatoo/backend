@@ -22,8 +22,8 @@ export class SkillsPageController {
   @UseGuards(AuthGuard)
   @Post()
   create(@Request() req, @Body() createSkillsPageDto: CreateSkillsPageDto) {
-    const { id: userId } = req.user.sub;
-    return this.skillsPageService.create({ ...createSkillsPageDto, userId });
+    const { id: user_id } = req.user.sub;
+    return this.skillsPageService.create({ ...createSkillsPageDto, user_id });
   }
 
   @Get('user-id/:userId')
