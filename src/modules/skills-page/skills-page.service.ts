@@ -80,7 +80,9 @@ export class SkillsPageService {
     ]);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} skillsPage`;
+  async remove(userId: number) {
+    await this.pgp.db.none('delete from skills_pages where user_id=$1', [
+      userId,
+    ]);
   }
 }

@@ -40,6 +40,7 @@ export class SkillsPageController {
   }
 
   @UseGuards(AuthGuard)
+  @HttpCode(204)
   @Delete()
   remove(@Request() req) {
     const { id: userId } = req.user.sub;
