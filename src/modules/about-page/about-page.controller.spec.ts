@@ -1,37 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { randomBytes } from 'crypto';
+import { AppModule } from 'src/app.module';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
+import { aboutPageFactory } from 'src/test-utils/about_page-factory';
 import { userFactory } from 'src/test-utils/user-factory';
 import { AboutPageController } from './about-page.controller';
 import { AboutPageService } from './about-page.service';
-import { AppModule } from 'src/app.module';
 
 describe('AboutPageController', () => {
   let aboutPageController: AboutPageController;
   let pgp: PgPromiseService;
-
-  const pageMock = {
-    title: 'Title test',
-    description: 'Desc test',
-    image_url: 'alsdkfj',
-    image_alt: 'llajsdf',
-  };
-
-  const pageFactory = async (user_id: number) =>
-    await pgp.db.one<{ id: number }>(
-      `insert into about_pages(
-        user_id, 
-        title, 
-        description,
-        image_url,
-        image_alt
-      ) values(
-        ${user_id}, 
-        '${pageMock.title}', 
-        '${pageMock.description}',
-        '${pageMock.image_url}',
-        '${pageMock.image_alt}'
-      ) returning id;`,
-    );
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,9 +20,6 @@ describe('AboutPageController', () => {
 
     aboutPageController = module.get<AboutPageController>(AboutPageController);
     pgp = module.get<PgPromiseService>(PgPromiseService);
-
-    await pgp.db.none('delete from about_pages;');
-    await pgp.db.none('delete from users;');
   });
 
   it('should be defined', () => {
@@ -53,12 +28,22 @@ describe('AboutPageController', () => {
 
   it('should be create the about page', async () => {
     const { id: userId } = await userFactory();
-    const { image_alt: imageAlt, image_url: imageUrl, ...data } = pageMock;
+    const randomTestId = randomBytes(10).toString('hex');
+    const pageMock = {
+      title: `title ${randomTestId}`,
+      description: `description ${randomTestId}`,
+      imageUrl: `image_url_${randomTestId}`,
+      imageAlt: `image_alt_${randomTestId}`,
+    };
     await aboutPageController.create(
       { user: { sub: { id: userId } } },
       {
-        ...data,
-        image: { imageAlt, imageUrl },
+        title: pageMock.title,
+        description: pageMock.description,
+        image: {
+          imageUrl: pageMock.imageUrl,
+          imageAlt: pageMock.imageAlt,
+        },
       },
     );
     const createdPage = await pgp.db.one(
@@ -67,7 +52,10 @@ describe('AboutPageController', () => {
     );
     const expected = {
       id: createdPage.id,
-      ...pageMock,
+      title: pageMock.title,
+      description: pageMock.description,
+      image_url: pageMock.imageUrl,
+      image_alt: pageMock.imageAlt,
       user_id: userId,
     };
 
@@ -75,13 +63,15 @@ describe('AboutPageController', () => {
   });
 
   it('should update the about page', async () => {
+    const randomTestId = randomBytes(10).toString('hex');
+
     const { id: user_id } = await userFactory();
-    const { id: page_id } = await pageFactory(user_id);
+    const createdPage = await aboutPageFactory(user_id);
 
     const newValues = {
       image: {
-        imageUrl: pageMock.image_url,
-        imageAlt: pageMock.image_alt,
+        imageUrl: `https://new_image_url.com/${randomTestId}.jpg`,
+        imageAlt: `${randomTestId} new image alt`,
       },
     };
     await aboutPageController.update(
@@ -94,8 +84,9 @@ describe('AboutPageController', () => {
       [user_id],
     );
     const expected = {
-      id: page_id,
-      ...pageMock,
+      id: createdPage.id,
+      title: createdPage.title,
+      description: createdPage.description,
       image_url: newValues.image.imageUrl,
       image_alt: newValues.image.imageAlt,
       user_id,
@@ -106,21 +97,22 @@ describe('AboutPageController', () => {
 
   it('should get the about page of the user', async () => {
     const { id: user_id } = await userFactory();
-    await pageFactory(user_id);
+    const createdPage = await aboutPageFactory(user_id);
 
-    const page = await aboutPageController.findByUser(user_id + '');
-    const { image_alt, image_url, ...expected } = pageMock;
+    const result = await aboutPageController.findByUser(user_id + '');
+    const expected = {
+      id: createdPage.id,
+      title: createdPage.title,
+      description: createdPage.description,
+      image: { url: createdPage.image_url, alt: createdPage.image_alt },
+    };
 
-    expect(page).toEqual({
-      id: page.id,
-      ...expected,
-      image: { url: image_url, alt: image_alt },
-    });
+    expect(result).toEqual(expected);
   });
 
   it('should delete page of the user', async () => {
     const { id: user_id } = await userFactory();
-    await pageFactory(user_id);
+    await aboutPageFactory(user_id);
 
     await aboutPageController.remove({ user: { sub: { id: user_id } } });
 

@@ -48,26 +48,30 @@ describe('SkillsPagesController (e2e)', () => {
   });
 
   it('/skills-page (POST)', async () => {
-    const { id: userId, email, hash_password } = await userFactory();
+    const createdUser = await userFactory();
 
     const data: CreateSkillsPageDto = {
       title: mockedSkillsPage.title,
       description: mockedSkillsPage.description,
     };
 
-    const token = await accessTokenFactory(email, hash_password);
+    const token = await accessTokenFactory(
+      createdUser.email,
+      createdUser.password,
+    );
     const { body, status } = await request(app.getHttpServer())
       .post('/skills-page')
       .set('Authorization', `Bearer ${token}`)
       .send(data);
+
     const createdPage = await pgp.db.one(
-      'select * from about_pages where user_id=$1;',
-      [userId],
+      'select * from skills_pages where user_id=$1;',
+      [createdUser.id],
     );
     const expected = {
       id: createdPage.id,
       ...mockedSkillsPage,
-      user_id: userId,
+      user_id: createdUser.id,
     };
 
     expect(body).toEqual({});
