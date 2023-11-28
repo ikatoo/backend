@@ -1,29 +1,30 @@
+import { randomBytes } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
+import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 
 const pgp = new PgPromiseService();
 
-export const mockedUser = {
-  name: 'Ttesasdf',
-  email: 'asdf@asdflkj.com',
-  password: 'lksjdfl',
+type User = {
+  id?: number;
+  name: string;
+  email: string;
+  hash_password: string;
+  enabled: boolean;
 };
 
-type User = {
-  id: number;
-  enabled: boolean;
-  hash_password: string;
-} & Omit<typeof mockedUser, 'password'>;
-
 export const userFactory = async () => {
-  const userExist = await pgp.db.oneOrNone<User>(
-    'select * from users where email=$1;',
-    [mockedUser.email],
-  );
-  if (!!userExist)
-    await pgp.db.none('delete from users where id=$1;', [userExist.id]);
+  const randomTestId = randomBytes(10).toString('hex');
+  const password = randomBytes(3).toString('hex') + 'pass';
+  const hash_password = await new CryptoService().hasher(8, password);
+  const mockedUser: User = {
+    name: randomTestId,
+    email: `${randomTestId}@email.com`,
+    hash_password,
+    enabled: true,
+  };
 
-  return await pgp.db.one<User>(
-    'insert into users(name, email, hash_password, enabled) values($1, $2, $3, true) returning *;',
-    Object.values(mockedUser),
+  return await pgp.db.one<Required<User> & { password: string }>(
+    'insert into users(name, email, hash_password, enabled) values($1, $2, $3, $4) returning *, $5 as password;',
+    [...Object.values(mockedUser), password],
   );
 };
