@@ -1,28 +1,21 @@
+import { randomBytes } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 
 const pgp = new PgPromiseService();
 
-export const mockedSkillsPage = {
-  title: 'Skill Page❗',
-  description: '<p>Description, skill page😄</p>',
+type SkillPage = {
+  id: number;
+  title: string;
+  description: string;
+  user_id: number;
 };
 
-type SkillPage = typeof mockedSkillsPage & { id: number; user_id: number };
-
-export const skillPageFactory = async (
-  user_id: number,
-  modifier?: () => void,
-) => {
-  !!modifier && modifier();
-
-  const skillPageExists = await pgp.db.oneOrNone<SkillPage>(
-    'select * from skills_pages where user_id=$1;',
-    [user_id],
-  );
-  if (!!skillPageExists)
-    await pgp.db.none('delete from skills_pages where id=$1;', [
-      skillPageExists.id,
-    ]);
+export const skillPageFactory = async (user_id: number) => {
+  const randomTestId = randomBytes(3).toString('hex');
+  const mockedSkillsPage = {
+    title: `${randomTestId} Skill Page❗`,
+    description: `<p>Description, skill page😄 ${randomTestId}</p>`,
+  };
 
   return await pgp.db.one<SkillPage>(
     `insert into skills_pages(

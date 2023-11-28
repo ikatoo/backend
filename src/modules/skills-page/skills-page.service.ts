@@ -71,11 +71,11 @@ export class SkillsPageService {
   async update(userId: number, updateSkillsPageDto: UpdateSkillsPageDto) {
     const values = Object.values(updateSkillsPageDto);
     const fieldsValues = Object.keys(updateSkillsPageDto).map(
-      (field, index) => `${field}="${values[index]}"`,
+      (field, index) => `${field}='${values[index]}'`,
     );
 
     await this.pgp.db.none('update skills_pages set $1:raw where user_id=$2', [
-      fieldsValues,
+      fieldsValues.toString(),
       userId,
     ]);
   }
