@@ -1,30 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { randomBytes } from 'crypto';
+import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
+import { User } from 'src/modules/user/IUserService';
+import { accessTokenFactory } from 'src/test-utils/access_token-factory';
+import { userFactory } from 'src/test-utils/user-factory';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
-import { accessTokenFactory } from 'src/test-utils/access_token-factory';
-import { UsersService } from 'src/modules/user/user.service';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
   let pgp: PgPromiseService;
-  let usersService: UsersService;
   const { compareHash } = new CryptoService();
-  const usersMock = [
-    {
-      name: 'Teste1',
-      email: 'teste1@teste.com',
-      password: 'teste1pass',
-    },
-    {
-      name: 'Teste2',
-      email: 'teste2@teste.com',
-      password: 'teste2pass',
-    },
-  ];
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -33,106 +22,97 @@ describe('UserController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     pgp = moduleFixture.get<PgPromiseService>(PgPromiseService);
-    usersService = moduleFixture.get<UsersService>(UsersService);
 
     await app.init();
     await pgp.db.none('delete from users;');
   });
 
   it('/users (GET)', async () => {
-    const values = [
-      usersMock
-        .map((user) => `('${user.name}', '${user.email}', '${user.password}')`)
-        .toString(),
-    ];
-    await pgp.db.none(
-      `insert into users(name, email, hash_password) values${values}`,
-    );
+    const {
+      hash_password: hash_password1,
+      password: password1,
+      ...user1
+    } = await userFactory();
+    const {
+      hash_password: hash_password2,
+      password: password2,
+      ...user2
+    } = await userFactory();
 
     const { body, status } = await request(app.getHttpServer()).get('/users');
-    const result = body.map((user) => ({
-      name: user.name,
-      email: user.email,
-    }));
-    const expected = usersMock.map((user) => ({
-      name: user.name,
-      email: user.email,
-    }));
+
+    const expected = [{ ...user1 }, { ...user2 }];
 
     expect(status).toEqual(200);
-    expect(result).toEqual(expected);
+    expect(body).toEqual(expected);
   });
 
   it('/user (POST)', async () => {
+    const randomTestId = randomBytes(3).toString('hex');
+    const mockedUser: User = {
+      name: `Name ${randomTestId}`,
+      email: `email${randomTestId}@email.com`,
+      password: 'password',
+    };
+
     const { body, status } = await request(app.getHttpServer())
       .post('/user')
-      .send(usersMock[1]);
+      .send(mockedUser);
 
-    const user = await pgp.db.oneOrNone(
-      'select id, name, email, hash_password as hash from users where email=$1;',
-      [usersMock[1].email],
+    const { hash_password, ...createdUser } = await pgp.db.oneOrNone(
+      'select id, name, email, hash_password from users where email=$1;',
+      [mockedUser.email],
     );
-    const { id, name, email, hash } = user;
+    const expected = {
+      id: createdUser.id,
+      name: mockedUser.name,
+      email: mockedUser.email,
+    };
 
     expect(body).toEqual({});
     expect(status).toEqual(201);
-    expect(id).toBeDefined();
-    expect({ name, email }).toEqual({
-      name: usersMock[1].name,
-      email: usersMock[1].email,
-    });
-    expect(await compareHash(usersMock[1].password, hash)).toBeTruthy();
+    expect(createdUser).toEqual(expected);
+    expect(await compareHash(mockedUser.password, hash_password)).toBeTruthy();
   });
 
   it('/user (PATCH)', async () => {
-    const values = Object.values(usersMock[0]).map((value) => `'${value}'`);
-    const { id: userId } = await pgp.db.oneOrNone(
-      `insert into users(name, email, hash_password) values(${values}) returning id;`,
-    );
+    await userFactory();
+    const userMock = await userFactory();
+    const newData = { name: 'Updated User' };
 
-    const token = await accessTokenFactory(
-      usersMock[0].email,
-      usersMock[0].password,
-    );
+    const token = await accessTokenFactory(userMock.email, userMock.password);
     const { body, status } = await request(app.getHttpServer())
       .patch(`/user`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Updated User' });
-    const { hash, ...updatedUser } = await pgp.db.oneOrNone(
-      'select id, name, email, hash_password as hash from users where id=$1;',
-      [userId],
+      .send(newData);
+    const { hash_password, ...updatedUser } = await pgp.db.oneOrNone(
+      'select id, name, email, hash_password from users where id=$1;',
+      [userMock.id],
     );
+    const expected = {
+      id: userMock.id,
+      name: newData.name,
+      email: userMock.email,
+    };
 
     expect(body).toEqual({});
     expect(status).toEqual(204);
-    expect(updatedUser).toEqual({
-      id: userId,
-      name: 'Updated User',
-      email: usersMock[0].email,
-    });
+    expect(updatedUser).toEqual(expected);
+    expect(await compareHash(userMock.password, hash_password)).toBeTruthy();
   });
 
   it('/user (DELETE)', async () => {
-    const values = Object.values(usersMock[0])
-      .map((value) => `'${value}'`)
-      .toString();
-    const user = await pgp.db.oneOrNone(
-      'insert into users($1:raw) values ($2:raw) returning id;',
-      ['name, email, hash_password', values],
-    );
-    const { id } = user;
+    await userFactory();
+    const userMock = await userFactory();
 
-    const token = await accessTokenFactory(
-      usersMock[0].email,
-      usersMock[0].password,
-    );
+    const token = await accessTokenFactory(userMock.email, userMock.password);
     const { body, status } = await request(app.getHttpServer())
       .delete(`/user`)
       .set('Authorization', `Bearer ${token}`)
       .send();
     const deletedUser = await pgp.db.oneOrNone({
       text: 'select name, email, hash_password from users where id=$1',
-      values: [id],
+      values: [userMock.id],
     });
 
     expect(status).toEqual(204);
