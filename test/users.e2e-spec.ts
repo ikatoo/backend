@@ -24,24 +24,18 @@ describe('UserController (e2e)', () => {
     pgp = moduleFixture.get<PgPromiseService>(PgPromiseService);
 
     await app.init();
-    await pgp.db.none('delete from users;');
   });
 
   it('/users (GET)', async () => {
-    const {
-      hash_password: hash_password1,
-      password: password1,
-      ...user1
-    } = await userFactory();
-    const {
-      hash_password: hash_password2,
-      password: password2,
-      ...user2
-    } = await userFactory();
+    await userFactory();
+    await userFactory();
 
     const { body, status } = await request(app.getHttpServer()).get('/users');
 
-    const expected = [{ ...user1 }, { ...user2 }];
+    const users = await pgp.db.manyOrNone(
+      'select id,name,email,enabled from users;',
+    );
+    const expected = [...users];
 
     expect(status).toEqual(200);
     expect(body).toEqual(expected);
