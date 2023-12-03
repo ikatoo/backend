@@ -4,6 +4,16 @@ import { CreateProjectDto } from 'src/modules/projects/dto/create-project.dto';
 
 const pgp = new PgPromiseService();
 
+type Project = {
+  id: number;
+  title: string;
+  description: string;
+  snapshot: string;
+  repository_link: string;
+  start: Date;
+  last_update: Date;
+};
+
 export const projectFactory = async () => {
   const randomTestId = randomBytes(10).toString('hex');
   const start = new Date(`2021/${randomInt(1, 13)}/${randomInt(1, 28)}`);
@@ -25,7 +35,7 @@ export const projectFactory = async () => {
     lastUpdate: mockedProject.lastUpdate.toISOString(),
   };
 
-  return await pgp.db.oneOrNone(
+  return await pgp.db.oneOrNone<Project>(
     `insert into projects(
         title,
         description,
