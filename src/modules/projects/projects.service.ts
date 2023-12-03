@@ -99,18 +99,23 @@ export class ProjectsService {
   async update(id: number, updateProjectDto: UpdateProjectDto) {
     if (!id || !Object.keys(updateProjectDto).length) return;
 
-    const fields = Object.keys(updateProjectDto)
-      .toString()
-      .replace('repositoryLink', 'repository_link')
-      .replace('lastUpdate', 'last_update');
+    const fields = Object.keys(updateProjectDto);
     const values = Object.values(updateProjectDto);
+    const fieldsValues = fields
+      .map((field, index) => {
+        field.replace('repositoryLink', 'repository_link');
+        field.replace('lastUpdate', 'last_update');
+
+        return `${field}='${values[index]}'`;
+      })
+      .toString();
 
     await this.pgp.db.none(
       `
-        update projects set ($1) = ($2) 
-        where id=$3;
+        update projects set $1:raw 
+        where id=$2;
       `,
-      [fields, values, id],
+      [fieldsValues, id],
     );
   }
 

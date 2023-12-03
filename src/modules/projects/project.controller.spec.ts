@@ -6,6 +6,8 @@ import { SkillsService } from '../skills/skills.service';
 import { ProjectController } from './project.controller';
 import { ProjectsService } from './projects.service';
 import { userFactory } from 'src/test-utils/user-factory';
+import { projectFactory } from 'src/test-utils/project-factory';
+import { projectOnUserFactory } from 'src/test-utils/project_on_user-factory';
 
 describe('ProjectController', () => {
   let projectController: ProjectController;
@@ -94,5 +96,29 @@ describe('ProjectController', () => {
       start: createdProject.start.toLocaleDateString(),
       skills,
     }).toEqual(expected);
+  });
+
+  it('project/ (PATCH) - should update a existent project', async () => {
+    const randomTestId = randomBytes(3).toString('hex');
+    const createdUser = await userFactory();
+    const createdProject = await projectFactory();
+    await projectOnUserFactory(createdProject.id, createdUser.id);
+    const newData = {
+      title: `New title ${randomTestId}`,
+    };
+
+    await projectController.update(createdProject.id + '', newData);
+
+    const updatedProject = await pgp.db.one(
+      'select * from projects where id=$1;',
+      [createdProject.id],
+    );
+    const expected = {
+      ...createdProject,
+      id: createdProject.id,
+      title: newData.title,
+    };
+
+    expect(updatedProject).toEqual(expected);
   });
 });
