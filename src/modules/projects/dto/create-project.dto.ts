@@ -1,7 +1,3 @@
-type Skill = {
-  title: string;
-};
-
 export type CreateProjectDto = {
   title: string;
   description: string;
@@ -9,6 +5,4 @@ export type CreateProjectDto = {
   repositoryLink: string;
   start: Date;
   lastUpdate: Date;
-  userId: number;
-  skills: Skill[];
 };

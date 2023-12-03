@@ -6,6 +6,7 @@ import { mockedSkill, skillFactory } from 'src/test-utils/skill-factory';
 import { skillOnUserProjectFactory } from 'src/test-utils/skill_on_user_project-factory';
 import { projectFactory } from 'src/test-utils/project-factory';
 import { projectOnUserFactory } from 'src/test-utils/project_on_user-factory';
+import { randomBytes } from 'crypto';
 
 describe('SkillsService', () => {
   let skillsService: SkillsService;
@@ -18,47 +19,31 @@ describe('SkillsService', () => {
 
     skillsService = module.get<SkillsService>(SkillsService);
     pgp = module.get<PgPromiseService>(PgPromiseService);
-
-    await pgp.db.none('delete from skills;');
-    await pgp.db.none('delete from projects;');
-    await pgp.db.none('delete from users;');
   });
 
   it('should be defined', () => {
     expect(skillsService).toBeDefined();
   });
 
-  it('should create a skill relationated a user project', async () => {
-    const { id: userId } = await userFactory();
-    const { id: projectId } = await projectFactory();
-    await projectOnUserFactory(projectId, userId);
-    const mock = { title: 'Skill title', userId, projectId };
+  it('should create a skill', async () => {
+    const randomTestId = randomBytes(3).toString('hex');
+    const mock = { title: `Skill title ${randomTestId}` };
 
     await skillsService.create(mock);
     const createdSkill = await pgp.db.many(
       `select
         skills.id as id,
-        skills.title as title,
-        users.id as user_id
+        skills.title as title
       from
-        projects,
-        projects_on_users as pou,
-        users,
-        skills_on_users_projects as soup,
         skills
       where
-        users.id=$1 and
-        pou.user_id=users.id and
-        pou.project_id=projects.id and
-        soup.project_on_user_id=pou.id and
-        soup.skill_id=skills.id
+        title=$1
       ;`,
-      [userId],
+      [mock.title],
     );
     const expected = {
       id: createdSkill[0].id,
       title: mock.title,
-      user_id: userId,
     };
 
     expect(createdSkill[0]).toEqual(expected);
@@ -78,7 +63,9 @@ describe('SkillsService', () => {
   });
 
   it('should update skill title', async () => {
-    const newTitle = 'New Title';
+    const randomTestId = randomBytes(3).toString('hex');
+    const newTitle = `New Title ${randomTestId}`;
+
     const { id: userId } = await userFactory();
     const { id: skillId, title: oldTitle } = await skillFactory();
     const { id: projectId } = await projectFactory();

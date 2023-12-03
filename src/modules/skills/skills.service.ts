@@ -10,10 +10,18 @@ export class SkillsService {
     return await this.pgp.db.manyOrNone('select * from skills');
   }
 
+  async findByTitle(title: string) {
+    const skill = await this.pgp.db.oneOrNone(
+      'select * from skills where title=$1',
+      [title],
+    );
+    return skill;
+  }
+
   async findByUser(userId: number) {
     const { db } = this.pgp;
 
-    const skills = await db.manyOrNone<{ id: number; title: string }>(
+    const skills = await db.manyOrNone(
       `select
         skills.id as id,
         skills.title as title
@@ -37,29 +45,24 @@ export class SkillsService {
   }
 
   async create(createSkillDto: CreateSkillDto) {
-    const db = this.pgp.db;
-    const projectExist = await db.oneOrNone(
-      `select * from projects_on_users where project_id=$1 and user_id=$2`,
-      [createSkillDto.projectId, createSkillDto.userId],
-    );
-    const skillExist = await db.oneOrNone(
-      'select id from skills where title ilike $1',
+    const skill: { id: number } = await this.pgp.db.oneOrNone(
+      'insert into skills(title) values($1) returning id;',
       [createSkillDto.title],
     );
-    if (!projectExist) throw new Error('Project not found.');
-    const { id: skillId } =
-      skillExist ??
-      (await db.oneOrNone(
-        'insert into skills(title) values($1) returning id;',
-        [createSkillDto.title],
-      ));
 
-    await db.none(
-      `insert into skills_on_users_projects(
-        skill_id, project_on_user_id
-      ) values($1, $2);`,
-      [skillId, projectExist.id],
+    return skill;
+  }
+
+  async createOnProject(skillId: number, projectOnUserId: number) {
+    const exist = await this.pgp.db.oneOrNone(
+      'select * from skills_on_users_projects where skill_id=$1 and project_on_user_id=$2',
+      [skillId, projectOnUserId],
     );
+    if (!exist)
+      await this.pgp.db.oneOrNone(
+        'insert into skills_on_users_projects(skill_id, project_on_user_id) values($1, $2);',
+        [skillId, projectOnUserId],
+      );
   }
 
   async remove(id: number) {
