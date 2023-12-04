@@ -98,7 +98,7 @@ describe('ProjectController', () => {
     }).toEqual(expected);
   });
 
-  it('project/ (PATCH) - should update a existent project', async () => {
+  it('project/:id (PATCH) - should update a existent project', async () => {
     const randomTestId = randomBytes(3).toString('hex');
     const createdUser = await userFactory();
     const createdProject = await projectFactory();
@@ -120,5 +120,19 @@ describe('ProjectController', () => {
     };
 
     expect(updatedProject).toEqual(expected);
+  });
+
+  it('project/:id (DELETE)', async () => {
+    const createdUser = await userFactory();
+    const createdProject = await projectFactory();
+    await projectOnUserFactory(createdProject.id, createdUser.id);
+    await projectController.remove(createdProject.id + '');
+
+    const deletedProject = await pgp.db.oneOrNone(
+      'select * from projects where id=$1;',
+      [createdProject.id],
+    );
+
+    expect(deletedProject).toBeNull();
   });
 });
