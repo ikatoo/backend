@@ -14,17 +14,21 @@ type Project = {
   last_update: Date;
 };
 
-export const projectFactory = async () => {
+export const projectFactory = async (staticTestId?: string) => {
   const randomTestId = randomBytes(10).toString('hex');
   const start = new Date(`2021/${randomInt(1, 13)}/${randomInt(1, 28)}`);
   const lastUpdate = new Date();
   lastUpdate.setDate(start.getDate() + randomInt(500));
 
   const mockedProject: Omit<CreateProjectDto, 'skills' | 'userId'> = {
-    title: `Mocked Title ${randomTestId}`,
-    description: `Mocked description ${randomTestId}`,
-    snapshot: `https://mocked.com/snapshot/${randomTestId}.png`,
-    repositoryLink: `https://mocked.link.com/repo/${randomTestId}`,
+    title: `Mocked Title ${randomTestId}${staticTestId || ''}`,
+    description: `Mocked description ${randomTestId}${staticTestId || ''}`,
+    snapshot: `https://mocked.com/snapshot/${randomTestId}.png${
+      staticTestId || ''
+    }`,
+    repositoryLink: `https://mocked.link.com/repo/${randomTestId}${
+      staticTestId || ''
+    }`,
     start,
     lastUpdate,
   };

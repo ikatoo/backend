@@ -61,9 +61,9 @@ export class ProjectsService {
           title,
           description,
           snapshot,
-          repository_link as repositoryLink,
+          repository_link as "repositoryLink",
           start,
-          last_update as lastUpdate 
+          last_update as "lastUpdate" 
         from projects, projects_on_users 
         where 
           projects_on_users.project_id = projects.id and
@@ -83,9 +83,9 @@ export class ProjectsService {
           title,
           description,
           snapshot,
-          repository_link as repositoryLink,
+          repository_link as "repositoryLink",
           start,
-          last_update as lastUpdate 
+          last_update as "lastUpdate" 
         from projects
         where 
           title ilike $1;
