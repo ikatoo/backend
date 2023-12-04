@@ -6,6 +6,8 @@ import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { accessTokenFactory } from 'src/test-utils/access_token-factory';
 import { projectFactory } from 'src/test-utils/project-factory';
 import { projectOnUserFactory } from 'src/test-utils/project_on_user-factory';
+import { skillFactory } from 'src/test-utils/skill-factory';
+import { skillOnUserProjectFactory } from 'src/test-utils/skill_on_user_project-factory';
 import { userFactory } from 'src/test-utils/user-factory';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
@@ -25,45 +27,80 @@ describe('ProjectsController (e2e)', () => {
   });
 
   it('/projects/user-id/:userId (GET)', async () => {
-    // const {
-    //   hash_password: hash_password1,
-    //   password: password1,
-    //   ...user1
-    // } = await userFactory();
-    // const {
-    //   hash_password: hash_password2,
-    //   password: password2,
-    //   ...user2
-    // } = await userFactory();
-    // const { body, status } = await request(app.getHttpServer()).get('/users');
-    // const expected = [{ ...user1 }, { ...user2 }];
-    // expect(status).toEqual(200);
-    // expect(body).toEqual(expected);
-  });
+    const createdUser = await userFactory();
+    const createdProject1 = await projectFactory();
+    const createdProject2 = await projectFactory();
+    const userProject1 = await projectOnUserFactory(
+      createdProject1.id,
+      createdUser.id,
+    );
+    const userProject2 = await projectOnUserFactory(
+      createdProject2.id,
+      createdUser.id,
+    );
+    const skills1 = await Promise.all(
+      Array.from({ length: randomInt(1, 5) }, async () => await skillFactory()),
+    );
+    const skills2 = await Promise.all(
+      Array.from({ length: randomInt(1, 5) }, async () => await skillFactory()),
+    );
+    await Promise.all(
+      skills1.map((skill) =>
+        skillOnUserProjectFactory(skill.id, userProject1.id),
+      ),
+    );
+    await Promise.all(
+      skills2.map((skill) =>
+        skillOnUserProjectFactory(skill.id, userProject2.id),
+      ),
+    );
 
-  it('/projects/title/:partialTitle (GET)', async () => {
-    // const randomTestId = randomBytes(3).toString('hex');
-    // const mockedUser: User = {
-    //   name: `Name ${randomTestId}`,
-    //   email: `email${randomTestId}@email.com`,
-    //   password: 'password',
-    // };
-    // const { body, status } = await request(app.getHttpServer())
-    //   .post('/user')
-    //   .send(mockedUser);
-    // const { hash_password, ...createdUser } = await pgp.db.oneOrNone(
-    //   'select id, name, email, hash_password from users where email=$1;',
-    //   [mockedUser.email],
-    // );
-    // const expected = {
-    //   id: createdUser.id,
-    //   name: mockedUser.name,
-    //   email: mockedUser.email,
-    // };
-    // expect(body).toEqual({});
-    // expect(status).toEqual(201);
-    // expect(createdUser).toEqual(expected);
-    // expect(await compareHash(mockedUser.password, hash_password)).toBeTruthy();
+    const token = await accessTokenFactory(
+      createdUser.email,
+      createdUser.password,
+    );
+    const { body, status } = await request(app.getHttpServer())
+      .get(`/projects/user-id/${createdUser.id}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    const result = body.map((project) => {
+      const { start, lastUpdate, skills, ...rest } = project;
+
+      return {
+        start: new Date(start).toLocaleDateString(),
+        lastUpdate: new Date(lastUpdate).toLocaleDateString(),
+        skills: (skills as any[]).sort((a, b) => a.id - b.id),
+        ...rest,
+      };
+    });
+
+    const expected = [
+      {
+        id: createdProject1.id,
+        title: createdProject1.title,
+        description: createdProject1.description,
+        snapshot: createdProject1.snapshot,
+        repositoryLink: createdProject1.repository_link,
+        start: createdProject1.start.toLocaleDateString(),
+        lastUpdate: createdProject1.last_update.toLocaleDateString(),
+        skills: skills1.sort((a, b) => a.id - b.id),
+        userId: createdUser.id,
+      },
+      {
+        id: createdProject2.id,
+        title: createdProject2.title,
+        description: createdProject2.description,
+        snapshot: createdProject2.snapshot,
+        repositoryLink: createdProject2.repository_link,
+        start: createdProject2.start.toLocaleDateString(),
+        lastUpdate: createdProject2.last_update.toLocaleDateString(),
+        skills: skills2.sort((a, b) => a.id - b.id),
+        userId: createdUser.id,
+      },
+    ];
+
+    expect(status).toEqual(200);
+    expect(result).toEqual(expected);
   });
 
   it('/project (POST)', async () => {

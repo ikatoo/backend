@@ -10,6 +10,27 @@ export class SkillsService {
     return await this.pgp.db.manyOrNone('select * from skills');
   }
 
+  async findByUserProject(skillId: number, projectId: number) {
+    const skills = await this.pgp.db.manyOrNone(
+      `select
+        skills.id as id,
+        skills.title as title
+      from 
+        skills_on_users_projects as soup,
+        skills,
+        projects_on_users as pou,
+        projects
+      where 
+        soup.skill_id=skills.id and
+        soup.project_on_user_id=pou.id and
+        pou.user_id=$1 and
+        pou.project_id=projects.id and
+        projects.id=$2;`,
+      [skillId, projectId],
+    );
+    return skills;
+  }
+
   async findByTitle(title: string) {
     const skill = await this.pgp.db.oneOrNone(
       'select * from skills where title=$1',
