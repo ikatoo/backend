@@ -29,6 +29,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     container:
       image: postgres:14
     steps:
@@ -52,7 +53,7 @@ jobs:
 
       - name: Nest Unit Tests
         run: npm run test:e2e
-      
+
       - name: Send email when fail tests
         if: ${{ failure() }}
         uses: dawidd6/action-send-mail@v3

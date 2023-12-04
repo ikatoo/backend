@@ -29,15 +29,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      psql:
-        image: postgres
-        links:
-          - postgres
-        volumes:
-          - ./src/infra/db/pg-promise/scripts:/db/scripts
-        env:
-          POSTGRES_PASSWORD: postgres
-        command: psql -v ON_ERROR_STOP=1 -h postgres --username postgres --dbname postgres -a -f /db/scripts/init.sql
 
     container:
       image: postgres:14
@@ -62,7 +53,7 @@ jobs:
 
       - name: Nest Unit Tests
         run: npm run test
-      
+
       - name: Send email when fail tests
         if: ${{ failure() }}
         uses: dawidd6/action-send-mail@v3
