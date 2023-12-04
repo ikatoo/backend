@@ -4,7 +4,7 @@ import { AppModule } from 'src/app.module';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { projectFactory } from 'src/test-utils/project-factory';
 import { projectOnUserFactory } from 'src/test-utils/project_on_user-factory';
-import { mockedSkill, skillFactory } from 'src/test-utils/skill-factory';
+import { skillFactory } from 'src/test-utils/skill-factory';
 import { skillOnUserProjectFactory } from 'src/test-utils/skill_on_user_project-factory';
 import { skillPageFactory } from 'src/test-utils/skill_page-factory';
 import { userFactory } from 'src/test-utils/user-factory';
@@ -51,12 +51,8 @@ describe('SkillsPageController', () => {
 
       return { ...rest, repositoryLink, lastUpdate };
     });
-    const skill1 = await skillFactory(() => {
-      mockedSkill.title = 'Skill 1';
-    });
-    const skill2 = await skillFactory(() => {
-      mockedSkill.title = 'Skill 2';
-    });
+    const skill1 = await skillFactory('Skill 1');
+    const skill2 = await skillFactory('Skill 2');
 
     const projectOnUser1 = await projectOnUserFactory(
       project1.id,

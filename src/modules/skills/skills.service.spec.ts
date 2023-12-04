@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SkillsService } from './skills.service';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { userFactory } from 'src/test-utils/user-factory';
-import { mockedSkill, skillFactory } from 'src/test-utils/skill-factory';
+import { skillFactory } from 'src/test-utils/skill-factory';
 import { skillOnUserProjectFactory } from 'src/test-utils/skill_on_user_project-factory';
 import { projectFactory } from 'src/test-utils/project-factory';
 import { projectOnUserFactory } from 'src/test-utils/project_on_user-factory';
@@ -53,11 +53,11 @@ describe('SkillsService', () => {
     const { id: userId } = await userFactory();
     const { id: projectId } = await projectFactory();
     const { id: userProjectId } = await projectOnUserFactory(projectId, userId);
-    const { id: skillId } = await skillFactory();
-    await skillOnUserProjectFactory(skillId, userProjectId);
+    const createdSkill = await skillFactory();
+    await skillOnUserProjectFactory(createdSkill.id, userProjectId);
 
     const skills = await skillsService.findByUser(userId);
-    const expected = [{ id: skills[0].id, ...mockedSkill }];
+    const expected = [createdSkill];
 
     expect(skills).toEqual(expected);
   });
