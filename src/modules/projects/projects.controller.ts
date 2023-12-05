@@ -10,8 +10,19 @@ export class ProjectsController {
   ) {}
 
   @Get()
-  listAll() {
-    return this.projectsService.listAll();
+  async listAll() {
+    const projects = await this.projectsService.listAll();
+    const projectsWithUsers = await Promise.all(
+      projects.map(async (project) => {
+        const users = await this.projectsService.listUsers(project.id);
+        return {
+          ...project,
+          users,
+        };
+      }),
+    );
+
+    return projectsWithUsers;
   }
 
   @Get('/user-id/:userId')
