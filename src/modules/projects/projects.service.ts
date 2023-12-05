@@ -45,9 +45,9 @@ export class ProjectsService {
         title,
         description,
         snapshot,
-        repository_link as repositoryLink,
+        repository_link as "repositoryLink",
         start,
-        last_update as lastUpdate
+        last_update as "lastUpdate"
       from projects;`);
 
     return projects;
@@ -122,5 +122,25 @@ export class ProjectsService {
   async remove(id: number) {
     if (!id) return;
     await this.pgp.db.none('delete from projects where id=$1', [id]);
+  }
+
+  async listUsers(projectId: number) {
+    const users = await this.pgp.db.manyOrNone<{ id: number; name: string }>(
+      `select
+        users.id as id,
+        users.name as name
+      from
+        users,
+        projects,
+        projects_on_users as pou 
+      where
+        pou.user_id=users.id and
+        pou.project_id=projects.id and
+        projects.id=$1
+      ;`,
+      [projectId],
+    );
+
+    return users;
   }
 }
