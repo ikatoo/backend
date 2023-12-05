@@ -31,6 +31,10 @@ describe('ProjectsController', () => {
   });
 
   it('/ (GET) - should list all projects with users', async () => {
+    const createdUser = await userFactory();
+    const createdProject = await projectFactory();
+    await projectOnUserFactory(createdProject.id, createdUser.id);
+
     const result = await projectsController.listAll();
 
     const projects = await pgp.db.many(
