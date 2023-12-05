@@ -13,7 +13,7 @@ import { ProjectsService } from './projects.service';
 
 describe('ProjectsController', () => {
   let projectsController: ProjectsController;
-  // let pgp: PgPromiseService;
+  let pgp: PgPromiseService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,11 +23,58 @@ describe('ProjectsController', () => {
     }).compile();
 
     projectsController = module.get<ProjectsController>(ProjectsController);
-    // pgp = module.get<PgPromiseService>(PgPromiseService);
+    pgp = module.get<PgPromiseService>(PgPromiseService);
   });
 
   it('should be defined', () => {
     expect(projectsController).toBeDefined();
+  });
+
+  it('/ (GET) - should list all projects with users', async () => {
+    const createdUser = await userFactory();
+    const createdProject = await projectFactory();
+    await projectOnUserFactory(createdProject.id, createdUser.id);
+
+    const result = await projectsController.listAll();
+
+    const projects = await pgp.db.many(
+      `select
+        p.id as id,
+        p.title as title,
+        p.description as description,
+        p.snapshot as snapshot,
+        p.repository_link as "repositoryLink",
+        p.start as start,
+        p.last_update as "lastUpdate"
+      from projects as p;`,
+    );
+
+    const expected = await Promise.all(
+      projects.map(async (project) => {
+        const users = await pgp.db.manyOrNone<{ id: number; name: string }>(
+          `select
+          users.id as id,
+          users.name as name
+        from
+          users,
+          projects,
+          projects_on_users as pou 
+        where
+          pou.user_id=users.id and
+          pou.project_id=projects.id and
+          projects.id=$1
+        ;`,
+          [project.id],
+        );
+
+        return {
+          ...project,
+          users,
+        };
+      }),
+    );
+
+    expect(result).toEqual(expected);
   });
 
   it('/user-id/:userId (GET) - should get project by user id', async () => {
