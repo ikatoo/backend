@@ -9,6 +9,10 @@ import { skillPageFactory } from 'src/test-utils/skill_page-factory';
 import request from 'supertest';
 import { userFactory } from '../src/test-utils/user-factory';
 import { AppModule } from './../src/app.module';
+import { projectFactory } from 'src/test-utils/project-factory';
+import { projectOnUserFactory } from 'src/test-utils/project_on_user-factory';
+import { skillFactory } from 'src/test-utils/skill-factory';
+import { skillOnUserProjectFactory } from 'src/test-utils/skill_on_user_project-factory';
 
 describe('SkillsPagesController (e2e)', () => {
   let app: INestApplication;
@@ -28,6 +32,44 @@ describe('SkillsPagesController (e2e)', () => {
 
   it('/skills-page/user-id/:userId (GET)', async () => {
     const createdUser = await userFactory();
+    const createdProject1 = await projectFactory().then(
+      ({ last_update, start, repository_link, ...project }) => ({
+        ...project,
+        lastUpdate: last_update.toLocaleDateString(),
+        start: start.toLocaleDateString(),
+        repositoryLink: repository_link,
+        userId: createdUser.id,
+      }),
+    );
+    const createdProject2 = await projectFactory().then(
+      ({ last_update, start, repository_link, ...project }) => ({
+        ...project,
+        lastUpdate: last_update.toLocaleDateString(),
+        start: start.toLocaleDateString(),
+        repositoryLink: repository_link,
+        userId: createdUser.id,
+      }),
+    );
+    const projectOnUser1 = await projectOnUserFactory(
+      createdProject1.id,
+      createdUser.id,
+    );
+    const projectOnUser2 = await projectOnUserFactory(
+      createdProject2.id,
+      createdUser.id,
+    );
+    const commonSkill1 = await skillFactory();
+    const commonSkill2 = await skillFactory();
+    const skillOfProject1 = await skillFactory();
+    const skillOfProject2 = await skillFactory();
+    await Promise.all([
+      skillOnUserProjectFactory(commonSkill1.id, projectOnUser1.id),
+      skillOnUserProjectFactory(commonSkill2.id, projectOnUser1.id),
+      skillOnUserProjectFactory(commonSkill1.id, projectOnUser2.id),
+      skillOnUserProjectFactory(commonSkill2.id, projectOnUser2.id),
+      skillOnUserProjectFactory(skillOfProject1.id, projectOnUser1.id),
+      skillOnUserProjectFactory(skillOfProject2.id, projectOnUser2.id),
+    ]);
 
     const createdPage = await skillPageFactory(createdUser.id);
 
@@ -38,11 +80,29 @@ describe('SkillsPagesController (e2e)', () => {
     const { user_id: userId, ...page } = createdPage;
     const expected = {
       ...page,
-      projects: [],
+      projects: [
+        {
+          ...createdProject1,
+          skills: [commonSkill1, commonSkill2, skillOfProject1],
+        },
+        {
+          ...createdProject2,
+          skills: [commonSkill1, commonSkill2, skillOfProject2],
+        },
+      ],
+    };
+    const { projects, ...rest } = body;
+    const result = {
+      ...rest,
+      projects: projects.map(({ lastUpdate, start, ...project }) => ({
+        ...project,
+        start: new Date(start).toLocaleDateString(),
+        lastUpdate: new Date(lastUpdate).toLocaleDateString(),
+      })),
     };
 
     expect(status).toEqual(200);
-    expect(body).toEqual(expected);
+    expect(result).toEqual(expected);
   });
 
   it('/skills-page (POST)', async () => {

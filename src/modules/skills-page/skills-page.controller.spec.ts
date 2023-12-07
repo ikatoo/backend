@@ -39,7 +39,7 @@ describe('SkillsPageController', () => {
         ...rest
       } = project;
 
-      return { ...rest, repositoryLink, lastUpdate };
+      return { ...rest, repositoryLink, lastUpdate, start };
     });
     const project2 = await projectFactory().then((project) => {
       const {
@@ -49,7 +49,7 @@ describe('SkillsPageController', () => {
         ...rest
       } = project;
 
-      return { ...rest, repositoryLink, lastUpdate };
+      return { ...rest, repositoryLink, lastUpdate, start };
     });
     const skill1 = await skillFactory('Skill 1');
     const skill2 = await skillFactory('Skill 2');
