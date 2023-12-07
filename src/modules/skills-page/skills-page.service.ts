@@ -36,6 +36,7 @@ export class SkillsPageService {
         proj.description as description,
         proj.snapshot as snapshot,
         proj.repository_link as "repositoryLink",
+        proj.start as "start",
         proj.last_update as "lastUpdate",
         pou.user_id as "userId"
       from projects as proj, projects_on_users as pou

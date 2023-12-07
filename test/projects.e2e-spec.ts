@@ -110,13 +110,9 @@ describe('ProjectsController (e2e)', () => {
       ),
     );
 
-    const token = await accessTokenFactory(
-      createdUser.email,
-      createdUser.password,
+    const { body, status } = await request(app.getHttpServer()).get(
+      `/projects/user-id/${createdUser.id}`,
     );
-    const { body, status } = await request(app.getHttpServer())
-      .get(`/projects/user-id/${createdUser.id}`)
-      .set('Authorization', `Bearer ${token}`);
 
     const result = body.map((project) => {
       const { start, lastUpdate, skills, ...rest } = project;
