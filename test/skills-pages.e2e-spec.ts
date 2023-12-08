@@ -83,19 +83,24 @@ describe('SkillsPagesController (e2e)', () => {
       projects: [
         {
           ...createdProject1,
-          skills: [commonSkill1, commonSkill2, skillOfProject1],
+          skills: [commonSkill1, commonSkill2, skillOfProject1].sort(
+            (a, b) => a.id - b.id,
+          ),
         },
         {
           ...createdProject2,
-          skills: [commonSkill1, commonSkill2, skillOfProject2],
+          skills: [commonSkill1, commonSkill2, skillOfProject2].sort(
+            (a, b) => a.id - b.id,
+          ),
         },
       ],
     };
     const { projects, ...rest } = body;
     const result = {
       ...rest,
-      projects: projects.map(({ lastUpdate, start, ...project }) => ({
+      projects: projects.map(({ lastUpdate, start, skills, ...project }) => ({
         ...project,
+        skills: skills.sort((a, b) => a.id - b.id),
         start: new Date(start).toLocaleDateString(),
         lastUpdate: new Date(lastUpdate).toLocaleDateString(),
       })),
