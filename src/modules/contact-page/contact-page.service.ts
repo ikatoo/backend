@@ -11,11 +11,13 @@ export class ContactPageService {
     const fields = Object.keys(createContactPageDto)
       .toString()
       .replace('userId', 'user_id');
-    const values = Object.values(createContactPageDto).toString();
-    await this.pgp.db.none('insert into contact_pages($1) values ($2);', [
-      fields,
-      values,
-    ]);
+    const values = Object.values(createContactPageDto)
+      .map((value) => `'${value}'`)
+      .toString();
+    await this.pgp.db.none(
+      'insert into contact_pages($1:raw) values ($2:raw);',
+      [fields, values],
+    );
   }
 
   async findByUser(userId: number) {
@@ -26,7 +28,8 @@ export class ContactPageService {
           description,
           localization,
           email,
-          user_id as userId
+          user_id as "userId"
+        from contact_pages
         where user_id=$1`,
       [userId],
     );
@@ -35,13 +38,13 @@ export class ContactPageService {
   }
 
   async update(userId: number, updateContactPageDto: UpdateContactPageDto) {
-    const fields = Object.keys(updateContactPageDto)
-      .toString()
-      .replace('userId', 'user_id');
-    const values = Object.values(updateContactPageDto).toString();
+    const fieldsValues = Object.keys(updateContactPageDto)
+      .map((field) => `${field}='${updateContactPageDto[field]}'`)
+      .toString();
+
     await this.pgp.db.none(
-      'update contact_pages set ($1) = ($2) where user_id = $3;',
-      [fields, values, userId],
+      'update contact_pages set $1:raw where user_id = $2;',
+      [`${fieldsValues}`, userId],
     );
   }
 
