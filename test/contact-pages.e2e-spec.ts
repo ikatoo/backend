@@ -3,12 +3,12 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomBytes, randomInt } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
+import { CreateContactPageDto } from 'src/modules/contact-page/dto/create-contact-page.dto';
 import { accessTokenFactory } from 'src/test-utils/access_token-factory';
+import { contactPageFactory } from 'src/test-utils/contact_page-factory';
 import request from 'supertest';
 import { userFactory } from '../src/test-utils/user-factory';
 import { AppModule } from './../src/app.module';
-import { contactPageFactory } from 'src/test-utils/contact_page-factory';
-import { CreateContactPageDto } from 'src/modules/contact-page/dto/create-contact-page.dto';
 
 describe('ContactPagesController (e2e)', () => {
   let app: INestApplication;
@@ -25,7 +25,7 @@ describe('ContactPagesController (e2e)', () => {
     await app.init();
   });
 
-  it.only('/contact-page/user-id/:userId (GET)', async () => {
+  it('/contact-page/user-id/:userId (GET)', async () => {
     const createdUser = await userFactory();
 
     const createdPage = await contactPageFactory(createdUser.id);
@@ -51,10 +51,13 @@ describe('ContactPagesController (e2e)', () => {
       title: `${randomTestId} title`,
       description: `${randomTestId} description`,
       email: `${randomTestId}@email.com`,
-      localization: `()
-        -22.4191${randomInt(10, 100)},
-        -46.8320${randomInt(10, 100)}
-      )`,
+      localization: `(-22.4191${randomInt(10, 100).toLocaleString('en-US', {
+        minimumIntegerDigits: 3,
+        useGrouping: false,
+      })}, -46.8320${randomInt(10, 100).toLocaleString('en-US', {
+        minimumIntegerDigits: 3,
+        useGrouping: false,
+      })})`,
       userId: createdUser.id,
     };
 
@@ -67,10 +70,13 @@ describe('ContactPagesController (e2e)', () => {
       .post('/contact-page')
       .set('Authorization', `Bearer ${token}`)
       .send(mockedData);
-    const createdPage = await pgp.db.one(
-      'select * from contact_pages where user_id=$1;',
-      [createdUser.id],
-    );
+
+    const createdPage = await pgp.db
+      .one('select * from contact_pages where user_id=$1;', [createdUser.id])
+      .then((page) => ({
+        ...page,
+        localization: `(${page.localization.x}, ${page.localization.y})`,
+      }));
     const expected = {
       id: createdPage.id,
       title: mockedData.title,
@@ -90,10 +96,13 @@ describe('ContactPagesController (e2e)', () => {
     const randomTestId = randomBytes(10).toString('hex');
     const newValues = {
       title: `New Title ${randomTestId}`,
-      localization: `()
-        -22.4191${randomInt(10, 100)},
-        -46.8320${randomInt(10, 100)}
-      )`,
+      localization: `(-22.4191${randomInt(10, 100).toLocaleString('en-US', {
+        minimumIntegerDigits: 3,
+        useGrouping: false,
+      })}, -46.8320${randomInt(10, 99).toLocaleString('en-US', {
+        minimumIntegerDigits: 3,
+        useGrouping: false,
+      })})`,
     };
     const existentPage = await contactPageFactory(createdUser.id);
 
@@ -106,10 +115,12 @@ describe('ContactPagesController (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send(newValues);
 
-    const updatedPage = await pgp.db.one(
-      'select * from contact_pages where user_id=$1;',
-      [createdUser.id],
-    );
+    const updatedPage = await pgp.db
+      .one('select * from contact_pages where user_id=$1;', [createdUser.id])
+      .then((page) => ({
+        ...page,
+        localization: `(${page.localization.x}, ${page.localization.y})`,
+      }));
     const expected = {
       id: existentPage.id,
       title: newValues.title,
