@@ -17,10 +17,13 @@ export const contactPageFactory = async (userId: number) => {
   const mockedContactPage = {
     title: `Mocked Title ${randomTestId}`,
     description: `Mocked description ${randomTestId}`,
-    localization: `(
-    -22.4191${randomInt(10, 100)},
-    -46.8320${randomInt(10, 100)}
-  )`,
+    localization: `(-22.4191${randomInt(10, 100).toLocaleString('en-US', {
+      minimumIntegerDigits: 3,
+      useGrouping: false,
+    })}, -46.8320${randomInt(10, 100).toLocaleString('en-US', {
+      minimumIntegerDigits: 3,
+      useGrouping: false,
+    })})`,
     email: `mocked${randomTestId}@mail.com`,
   };
 

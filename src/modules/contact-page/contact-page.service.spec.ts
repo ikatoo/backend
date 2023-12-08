@@ -43,10 +43,13 @@ describe('ContactPageService', () => {
       title: `${randomTestId} title`,
       description: `${randomTestId} description`,
       email: `${randomTestId}@email.com`,
-      localization: `(-22.4191${randomInt(10, 100)}, -46.8320${randomInt(
-        10,
-        100,
-      )})`,
+      localization: `(-22.4191${randomInt(10, 100).toLocaleString('en-US', {
+        minimumIntegerDigits: 3,
+        useGrouping: false,
+      })}, -46.8320${randomInt(10, 100).toLocaleString('en-US', {
+        minimumIntegerDigits: 3,
+        useGrouping: false,
+      })})`,
       userId: createdUser.id,
     };
 
@@ -66,7 +69,13 @@ describe('ContactPageService', () => {
       )
       .then(({ localization, ...page }) => ({
         ...page,
-        localization: `(${localization.x}, ${localization.y})`,
+        localization: `(${parseFloat(localization.x).toLocaleString('en-US', {
+          minimumSignificantDigits: 9,
+          useGrouping: false,
+        })}, ${parseFloat(localization.y).toLocaleString('en-US', {
+          minimumSignificantDigits: 9,
+          useGrouping: false,
+        })})`,
       }));
 
     expect(result).toEqual(mockedData);
@@ -84,10 +93,13 @@ describe('ContactPageService', () => {
     const newData = {
       description: `${randomTestId} description`,
       email: `${randomTestId}@email.com`,
-      localization: `(-22.4191${randomInt(10, 100)}, -46.8320${randomInt(
-        10,
-        100,
-      )})`,
+      localization: `(-22.4191${randomInt(10, 100).toLocaleString('en-US', {
+        minimumIntegerDigits: 3,
+        useGrouping: false,
+      })}, -46.8320${randomInt(10, 100).toLocaleString('en-US', {
+        minimumIntegerDigits: 3,
+        useGrouping: false,
+      })})`,
     };
     const expected = {
       ...existentPage,
