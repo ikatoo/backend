@@ -22,7 +22,7 @@ export class ContactPageController {
   @UseGuards(AuthGuard)
   @Post()
   create(@Body() createContactPageDto: CreateContactPageDto) {
-    return this.contactPageService.create(createContactPageDto);
+    this.contactPageService.create(createContactPageDto);
   }
 
   @Get('/user-id/:userId')
@@ -35,7 +35,7 @@ export class ContactPageController {
   @Patch()
   update(@Request() req, @Body() updateContactPageDto: UpdateContactPageDto) {
     const { id: userId } = req.user.sub;
-    return this.contactPageService.update(+userId, updateContactPageDto);
+    this.contactPageService.update(+userId, updateContactPageDto);
   }
 
   @UseGuards(AuthGuard)
@@ -43,6 +43,6 @@ export class ContactPageController {
   @Delete()
   remove(@Request() req) {
     const { id: userId } = req.user.sub;
-    return this.contactPageService.remove(+userId);
+    this.contactPageService.remove(+userId);
   }
 }
