@@ -21,28 +21,31 @@ export class ContactPageController {
 
   @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createContactPageDto: CreateContactPageDto) {
-    this.contactPageService.create(createContactPageDto);
+  async create(@Body() createContactPageDto: CreateContactPageDto) {
+    await this.contactPageService.create(createContactPageDto);
   }
 
   @Get('/user-id/:userId')
-  findByUser(@Param('userId') userId: string) {
-    return this.contactPageService.findByUser(+userId);
+  async findByUser(@Param('userId') userId: string) {
+    return await this.contactPageService.findByUser(+userId);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Patch()
-  update(@Request() req, @Body() updateContactPageDto: UpdateContactPageDto) {
+  async update(
+    @Request() req,
+    @Body() updateContactPageDto: UpdateContactPageDto,
+  ) {
     const { id: userId } = req.user.sub;
-    this.contactPageService.update(+userId, updateContactPageDto);
+    await this.contactPageService.update(+userId, updateContactPageDto);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Delete()
-  remove(@Request() req) {
+  async remove(@Request() req) {
     const { id: userId } = req.user.sub;
-    this.contactPageService.remove(+userId);
+    await this.contactPageService.remove(+userId);
   }
 }

@@ -64,14 +64,17 @@ export class ProjectController {
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(+id, updateProjectDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+  ) {
+    return await this.projectsService.update(+id, updateProjectDto);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.projectsService.remove(+id);
   }
 }
