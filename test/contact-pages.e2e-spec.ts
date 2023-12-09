@@ -51,13 +51,18 @@ describe('ContactPagesController (e2e)', () => {
       title: `${randomTestId} title`,
       description: `${randomTestId} description`,
       email: `${randomTestId}@email.com`,
-      localization: `(-22.4191${randomInt(10, 100).toLocaleString('en-US', {
-        minimumIntegerDigits: 3,
+      localization: `(${parseFloat(
+        `-22.4191${randomInt(10, 100)}`,
+      ).toLocaleString('en-US', {
+        minimumFractionDigits: 7,
         useGrouping: false,
-      })}, -46.8320${randomInt(10, 100).toLocaleString('en-US', {
-        minimumIntegerDigits: 3,
-        useGrouping: false,
-      })})`,
+      })}, ${parseFloat(`-46.8320${randomInt(10, 100)}`).toLocaleString(
+        'en-US',
+        {
+          minimumFractionDigits: 7,
+          useGrouping: false,
+        },
+      )})`,
       userId: createdUser.id,
     };
 
@@ -73,9 +78,15 @@ describe('ContactPagesController (e2e)', () => {
 
     const createdPage = await pgp.db
       .one('select * from contact_pages where user_id=$1;', [createdUser.id])
-      .then((page) => ({
+      .then(({ localization, ...page }) => ({
         ...page,
-        localization: `(${page.localization.x}, ${page.localization.y})`,
+        localization: `(${parseFloat(localization.x).toLocaleString('en-US', {
+          minimumFractionDigits: 7,
+          useGrouping: false,
+        })}, ${parseFloat(localization.y).toLocaleString('en-US', {
+          minimumFractionDigits: 7,
+          useGrouping: false,
+        })})`,
       }));
     const expected = {
       id: createdPage.id,
@@ -96,13 +107,18 @@ describe('ContactPagesController (e2e)', () => {
     const randomTestId = randomBytes(10).toString('hex');
     const newValues = {
       title: `New Title ${randomTestId}`,
-      localization: `(-22.4191${randomInt(10, 100).toLocaleString('en-US', {
-        minimumIntegerDigits: 3,
+      localization: `(${parseFloat(
+        `-22.4191${randomInt(10, 100)}`,
+      ).toLocaleString('en-US', {
+        minimumFractionDigits: 7,
         useGrouping: false,
-      })}, -46.8320${randomInt(10, 99).toLocaleString('en-US', {
-        minimumIntegerDigits: 3,
-        useGrouping: false,
-      })})`,
+      })}, ${parseFloat(`-46.8320${randomInt(10, 100)}`).toLocaleString(
+        'en-US',
+        {
+          minimumFractionDigits: 7,
+          useGrouping: false,
+        },
+      )})`,
     };
     const existentPage = await contactPageFactory(createdUser.id);
 
@@ -119,7 +135,16 @@ describe('ContactPagesController (e2e)', () => {
       .one('select * from contact_pages where user_id=$1;', [createdUser.id])
       .then((page) => ({
         ...page,
-        localization: `(${page.localization.x}, ${page.localization.y})`,
+        localization: `(${parseFloat(page.localization.x).toLocaleString(
+          'en-US',
+          {
+            minimumFractionDigits: 7,
+            useGrouping: false,
+          },
+        )}, ${parseFloat(page.localization.y).toLocaleString('en-US', {
+          minimumFractionDigits: 7,
+          useGrouping: false,
+        })})`,
       }));
     const expected = {
       id: existentPage.id,

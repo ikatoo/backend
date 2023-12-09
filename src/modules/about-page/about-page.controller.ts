@@ -21,9 +21,12 @@ export class AboutPageController {
 
   @UseGuards(AuthGuard)
   @Post()
-  create(@Request() req, @Body() createAboutPageDto: CreateAboutPageDto) {
+  async create(@Request() req, @Body() createAboutPageDto: CreateAboutPageDto) {
     const { id: userId } = req.user.sub;
-    return this.aboutPageService.create({ ...createAboutPageDto, userId });
+    return await this.aboutPageService.create({
+      ...createAboutPageDto,
+      userId,
+    });
   }
 
   @Get('user-id/:userId')
@@ -35,16 +38,16 @@ export class AboutPageController {
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Patch()
-  update(@Request() req, @Body() updateAboutPageDto: UpdateAboutPageDto) {
+  async update(@Request() req, @Body() updateAboutPageDto: UpdateAboutPageDto) {
     const { id: userId } = req.user.sub;
-    return this.aboutPageService.update(+userId, updateAboutPageDto);
+    return await this.aboutPageService.update(+userId, updateAboutPageDto);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Delete()
-  remove(@Request() req) {
+  async remove(@Request() req) {
     const { id: userId } = req.user.sub;
-    return this.aboutPageService.remove(+userId);
+    return await this.aboutPageService.remove(+userId);
   }
 }

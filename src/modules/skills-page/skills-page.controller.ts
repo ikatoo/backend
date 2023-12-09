@@ -1,19 +1,19 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
   HttpCode,
+  Param,
+  Patch,
+  Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { SkillsPageService } from './skills-page.service';
+import { AuthGuard } from '../auth/auth.guard';
 import { CreateSkillsPageDto } from './dto/create-skills-page.dto';
 import { UpdateSkillsPageDto } from './dto/update-skills-page.dto';
-import { AuthGuard } from '../auth/auth.guard';
+import { SkillsPageService } from './skills-page.service';
 
 @Controller('skills-page')
 export class SkillsPageController {
@@ -21,29 +21,38 @@ export class SkillsPageController {
 
   @UseGuards(AuthGuard)
   @Post()
-  create(@Request() req, @Body() createSkillsPageDto: CreateSkillsPageDto) {
+  async create(
+    @Request() req,
+    @Body() createSkillsPageDto: CreateSkillsPageDto,
+  ) {
     const { id: user_id } = req.user.sub;
-    return this.skillsPageService.create({ ...createSkillsPageDto, user_id });
+    return await this.skillsPageService.create({
+      ...createSkillsPageDto,
+      user_id,
+    });
   }
 
   @Get('user-id/:userId')
   async findByUser(@Param('userId') userId: string) {
-    return this.skillsPageService.findByUser(+userId);
+    return await this.skillsPageService.findByUser(+userId);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Patch()
-  update(@Request() req, @Body() updateSkillsPageDto: UpdateSkillsPageDto) {
+  async update(
+    @Request() req,
+    @Body() updateSkillsPageDto: UpdateSkillsPageDto,
+  ) {
     const { id: userId } = req.user.sub;
-    return this.skillsPageService.update(+userId, updateSkillsPageDto);
+    return await this.skillsPageService.update(+userId, updateSkillsPageDto);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Delete()
-  remove(@Request() req) {
+  async remove(@Request() req) {
     const { id: userId } = req.user.sub;
-    return this.skillsPageService.remove(+userId);
+    return await this.skillsPageService.remove(+userId);
   }
 }

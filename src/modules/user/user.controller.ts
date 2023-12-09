@@ -17,23 +17,23 @@ export class UserController {
   constructor(private readonly userService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: User) {
-    return this.userService.create(createUserDto);
+  async create(@Body() createUserDto: User) {
+    return await this.userService.create(createUserDto);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Patch()
-  update(@Request() req, @Body() updateUserDto: UserWithoutId) {
+  async update(@Request() req, @Body() updateUserDto: UserWithoutId) {
     const { id } = req.user.sub;
-    return this.userService.update(+id, updateUserDto);
+    return await this.userService.update(+id, updateUserDto);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(204)
   @Delete()
-  remove(@Request() req) {
+  async remove(@Request() req) {
     const { id } = req.user.sub;
-    return this.userService.remove(+id);
+    return await this.userService.remove(+id);
   }
 }

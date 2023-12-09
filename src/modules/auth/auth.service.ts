@@ -20,21 +20,27 @@ export class AuthService {
   ) {}
 
   async signIn({ email, password }: SignInArgs): Promise<SignInResponse> {
-    const { hash_password, ...user } = await this.pgp.db.oneOrNone<UserDb>(
+    // const { hash_password, ...user } = await this.pgp.db.oneOrNone<UserDb>(
+    const existentUser = await this.pgp.db.oneOrNone<UserDb>(
       'select * from users where email ilike $1',
       [email],
     );
 
-    if (!user.enabled) throw new UnauthorizedException();
+    if (!existentUser || !existentUser.enabled)
+      throw new UnauthorizedException();
 
-    const authorized = await this.crypto.compareHash(password, hash_password);
+    const authorized = await this.crypto.compareHash(
+      password,
+      existentUser.hash_password,
+    );
     if (!authorized) {
       throw new UnauthorizedException();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { hash_password: _, ...user } = existentUser;
     const payload = { sub: user };
     const access_token = await this.jwtService.signAsync(payload);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return { user: { id: user.id }, access_token };
   }
 }
