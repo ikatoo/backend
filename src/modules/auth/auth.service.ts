@@ -37,10 +37,4 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return { user: { id: user.id }, access_token };
   }
-
-  async signOut(token: string): Promise<void> {
-    await this.pgp.db.none('insert into token_blacklist(code) values($1) ;', [
-      token,
-    ]);
-  }
 }

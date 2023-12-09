@@ -16,16 +16,8 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('sign-in')
-  signIn(@Body() signInArgs: { email: string; password: string }) {
-    return this.authService.signIn(signInArgs);
-  }
-
-  @UseGuards(AuthGuard)
-  @HttpCode(HttpStatus.OK)
-  @Post('sign-out')
-  signOut(@Request() req) {
-    const { token } = req.user;
-    return this.authService.signOut(token);
+  async signIn(@Body() signInArgs: { email: string; password: string }) {
+    return await this.authService.signIn(signInArgs);
   }
 
   @UseGuards(AuthGuard)

@@ -84,16 +84,6 @@ CREATE TABLE "public"."skills_pages" (
 ) WITH (oids = false);
 
 
-CREATE SEQUENCE token_blacklist_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
-
-CREATE TABLE "public"."token_blacklist" (
-    "id" integer DEFAULT nextval('token_blacklist_id_seq') NOT NULL,
-    "code" character varying NOT NULL,
-    CONSTRAINT "token_blacklist_code" UNIQUE ("code"),
-    CONSTRAINT "token_blacklist_pkey" PRIMARY KEY ("id")
-) WITH (oids = false);
-
-
 CREATE SEQUENCE users_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."users" (
