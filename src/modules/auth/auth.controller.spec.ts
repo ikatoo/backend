@@ -1,31 +1,64 @@
-import { JwtModule } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { AppModule } from 'src/app.module';
 import { PRIVATE_KEY } from 'src/constants';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
+import { userFactory } from 'src/test-utils/user-factory';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
 describe('AuthController', () => {
-  let controller: AuthController;
+  let authController: AuthController;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      imports: [
-        JwtModule.register({
-          global: true,
-          secret: PRIVATE_KEY,
-          signOptions: { expiresIn: '60s' },
-        }),
-      ],
       providers: [AuthService, CryptoService, PgPromiseService],
+      imports: [AppModule],
     }).compile();
 
-    controller = module.get<AuthController>(AuthController);
+    authController = module.get<AuthController>(AuthController);
+    jwtService = module.get<JwtService>(JwtService);
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(authController).toBeDefined();
+  });
+
+  it('should NOT sign-in because user not found', async () => {
+    const signInArgs = {
+      email: 'invalid@email.com',
+      password: 'invalid-password',
+    };
+
+    await expect(authController.signIn(signInArgs)).rejects.toThrowError(
+      'Unauthorized',
+    );
+  });
+
+  it('should NOT sign-in because password is incorrect', async () => {
+    const { email } = await userFactory();
+
+    await expect(
+      authController.signIn({ email, password: 'invalid-password' }),
+    ).rejects.toThrowError('Unauthorized');
+  });
+
+  it('should accept sign-in', async () => {
+    const { email, password, enabled, name, id } = await userFactory();
+
+    const result = await authController.signIn({ email, password });
+    const isValid = jwtService.verify(result.access_token, {
+      secret: PRIVATE_KEY,
+    });
+
+    expect(result).toEqual({ user: { id }, access_token: result.access_token });
+    expect(isValid).toEqual({
+      exp: isValid.exp,
+      iat: isValid.iat,
+      sub: { id, email, enabled, name },
+    });
   });
 });

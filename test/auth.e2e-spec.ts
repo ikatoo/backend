@@ -92,4 +92,42 @@ describe('/auth (e2e)', () => {
     });
     expect(status).toEqual(HttpStatus.UNAUTHORIZED);
   });
+
+  it('/verify-token (POST) - success', async () => {
+    const createdUser = await userFactory();
+
+    const token = await accessTokenFactory(
+      createdUser.email,
+      createdUser.password,
+    );
+    const { body, status } = await request(app.getHttpServer())
+      .post('/auth/verify-token')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(body).toEqual({
+      user: {
+        exp: body.user.exp,
+        iat: body.user.iat,
+        sub: {
+          id: createdUser.id,
+          name: createdUser.name,
+          email: createdUser.email,
+          enabled: true,
+        },
+      },
+    });
+    expect(status).toEqual(HttpStatus.OK);
+  });
+
+  it('/verify-token (POST) - fail', async () => {
+    const { body, status } = await request(app.getHttpServer())
+      .post('/auth/verify-token')
+      .set('Authorization', 'Bearer invalid-token');
+
+    expect(status).toEqual(HttpStatus.UNAUTHORIZED);
+    expect(body).toEqual({
+      message: 'Unauthorized',
+      statusCode: 401,
+    });
+  });
 });
