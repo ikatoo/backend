@@ -19,7 +19,6 @@ describe('UserService', () => {
     userService = module.get<UsersService>(UsersService);
     pgp = module.get<PgPromiseService>(PgPromiseService);
     db = pgp.db;
-    db.none('delete from users;');
   });
 
   it('should be defined', () => {
@@ -27,10 +26,11 @@ describe('UserService', () => {
   });
 
   it('should create a user without error', async () => {
+    const testId = randomBytes(4).toString('hex');
     const mockedUser = {
-      name: 'Tetste',
-      email: 'asdf@asdf.com',
-      password: 'asldfjasdf',
+      name: `${testId}Tetste`,
+      email: `${testId}asdf@asdf.com`,
+      password: `${testId}asldfjasdf`,
     };
     await userService.create(mockedUser);
 
@@ -86,11 +86,17 @@ describe('UserService', () => {
   });
 
   it('should delete user', async () => {
-    const mockedUsers = Array.from({ length: 4 }, (_, i) => ({
-      name: `User ${i}`,
-      email: `email${i}@teste.com`,
-      password: `pass${i}`,
-    }));
+    const mockedUsers = await Promise.all(
+      Array.from({ length: 4 }, async (_, i) => {
+        const randomTestId = await randomBytes(4).toString('hex');
+        return {
+          name: `User ${i} ${randomTestId}`,
+          email: `email${i}${randomTestId}@teste.com$`,
+          password: `pass${i}${randomTestId}`,
+        };
+      }),
+    );
+
     const values = mockedUsers
       .map((user) => `('${user.name}', '${user.email}', '${user.password}')`)
       .toString();
