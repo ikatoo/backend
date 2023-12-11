@@ -26,8 +26,6 @@ describe('SkillsPagesController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     pgp = moduleFixture.get<PgPromiseService>(PgPromiseService);
     await app.init();
-    await pgp.db.none('delete from users;');
-    await pgp.db.none('delete from skills_pages;');
   });
 
   it('/skills-page/user-id/:userId (GET)', async () => {
