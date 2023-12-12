@@ -69,6 +69,21 @@ describe('UserController (e2e)', () => {
     expect(await compareHash(mockedUser.password, hash_password)).toBeTruthy();
   });
 
+  it('/user (POST) - fail - user exists - bad request', async () => {
+    const createdUser = await userFactory();
+
+    const { body, status } = await request(app.getHttpServer())
+      .post('/user')
+      .send({
+        name: createdUser.name,
+        email: createdUser.email,
+        password: 'somepassword',
+      });
+
+    expect(body).toEqual({ message: 'Bad Request', statusCode: 400 });
+    expect(status).toEqual(400);
+  });
+
   it('/user (PATCH)', async () => {
     await userFactory();
     const userMock = await userFactory();

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import {
@@ -24,6 +24,13 @@ export class UsersService implements IUserService {
 
   async create(user: User) {
     const { password, name, email } = user;
+
+    const existentUser = await this.pgp.db.oneOrNone(
+      'select * from users where email ilike $1',
+      [email],
+    );
+    if (!!existentUser) throw new BadRequestException();
+
     const hashPassword = await this.crypto.hasher(8, password);
     await this.pgp.db.none(
       'insert into users(name, email, hash_password) values($1, $2, $3);',
