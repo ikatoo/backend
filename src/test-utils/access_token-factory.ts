@@ -13,10 +13,10 @@ const jwtService = new JwtService({
 const authService = new AuthService(pgp, crypto, jwtService);
 
 export const accessTokenFactory = async (email: string, password: string) => {
-  const { access_token } = await authService.signIn({
+  const { accessToken } = await authService.signIn({
     email,
     password,
   });
 
-  return access_token;
+  return accessToken;
 };

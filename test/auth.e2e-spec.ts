@@ -36,8 +36,10 @@ describe('/auth (e2e)', () => {
     const expected = {
       user: {
         id: createdUser.id,
+        name: createdUser.name,
+        email: createdUser.email,
       },
-      access_token: body.access_token,
+      accessToken: body.accessToken,
     };
 
     expect(body).toEqual(expected);
@@ -112,7 +114,6 @@ describe('/auth (e2e)', () => {
           id: createdUser.id,
           name: createdUser.name,
           email: createdUser.email,
-          enabled: true,
         },
       },
     });

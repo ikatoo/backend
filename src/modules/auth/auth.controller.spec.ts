@@ -47,18 +47,21 @@ describe('AuthController', () => {
   });
 
   it('should accept sign-in', async () => {
-    const { email, password, enabled, name, id } = await userFactory();
+    const { email, password, name, id } = await userFactory();
 
     const result = await authController.signIn({ email, password });
-    const isValid = jwtService.verify(result.access_token, {
+    const isValid = jwtService.verify(result.accessToken, {
       secret: PRIVATE_KEY,
     });
 
-    expect(result).toEqual({ user: { id }, access_token: result.access_token });
+    expect(result).toEqual({
+      user: { id, name, email },
+      accessToken: result.accessToken,
+    });
     expect(isValid).toEqual({
       exp: isValid.exp,
       iat: isValid.iat,
-      sub: { id, email, enabled, name },
+      sub: { id, email, name },
     });
   });
 });
