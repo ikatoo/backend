@@ -157,16 +157,14 @@ describe('ProjectsController (e2e)', () => {
   it('/project (POST)', async () => {
     const randomTestId = randomBytes(3).toString('hex');
     const createdUser = await userFactory();
-    const start = new Date(`2021/${randomInt(1, 13)}/${randomInt(1, 28)}`);
-    const lastUpdate = new Date();
-    lastUpdate.setDate(start.getDate() + randomInt(500));
+
     const mockedData = {
       title: `title ${randomTestId}`,
       description: `description ${randomTestId}`,
       snapshot: `snapshot ${randomTestId}`,
       repositoryLink: `repositoryLink ${randomTestId}`,
-      start,
-      lastUpdate,
+      start: new Date(2021, 7, 9),
+      lastUpdate: new Date(2022, 3, 6),
       skills: [{ title: `skill ${randomTestId}` }],
       userId: createdUser.id,
     };
@@ -180,10 +178,17 @@ describe('ProjectsController (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send(mockedData);
 
-    const createdProject = await pgp.db.oneOrNone(
-      'select * from projects where title=$1;',
-      [mockedData.title],
-    );
+    const createdProject = await pgp.db
+      .oneOrNone('select * from projects where title=$1;', [mockedData.title])
+      .then((project) => ({
+        ...project,
+        start: (project.start as Date).toLocaleDateString('en-US', {
+          dateStyle: 'short',
+        }),
+        last_update: (project.last_update as Date).toLocaleDateString('en-US', {
+          dateStyle: 'short',
+        }),
+      }));
 
     const expected = {
       id: createdProject.id,
@@ -191,17 +196,17 @@ describe('ProjectsController (e2e)', () => {
       description: mockedData.description,
       snapshot: mockedData.snapshot,
       repository_link: mockedData.repositoryLink,
-      start: mockedData.start.toLocaleDateString(),
-      last_update: mockedData.lastUpdate.toLocaleDateString(),
+      start: mockedData.start.toLocaleDateString('en-US', {
+        dateStyle: 'short',
+      }),
+      last_update: mockedData.lastUpdate.toLocaleDateString('en-US', {
+        dateStyle: 'short',
+      }),
     };
 
     expect(body).toEqual({});
     expect(status).toEqual(201);
-    expect({
-      ...createdProject,
-      last_update: createdProject.last_update.toLocaleDateString(),
-      start: createdProject.start.toLocaleDateString(),
-    }).toEqual(expected);
+    expect(createdProject).toEqual(expected);
   });
 
   it('/project/:id (PATCH)', async () => {

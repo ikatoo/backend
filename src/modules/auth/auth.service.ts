@@ -7,8 +7,12 @@ import { UserWithoutPassword } from '../user/IUserService';
 export type SignInArgs = { email: string; password: string };
 export type UserDb = UserWithoutPassword & { hash_password: string };
 export type SignInResponse = {
-  user: { id: number };
-  access_token: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  accessToken: string;
 };
 
 @Injectable()
@@ -36,10 +40,14 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hash_password: _, ...user } = existentUser;
+    const user = {
+      id: existentUser.id,
+      name: existentUser.name,
+      email: existentUser.email,
+    };
     const payload = { sub: user };
-    const access_token = await this.jwtService.signAsync(payload);
-    return { user: { id: user.id }, access_token };
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return { user, accessToken };
   }
 }
