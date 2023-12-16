@@ -1,7 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
-import { PRIVATE_KEY } from 'src/constants';
+import { PRIVATE_KEY, REFRESH_PRIVATE_KEY } from 'src/constants';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import { userFactory } from 'src/test-utils/user-factory';
@@ -50,17 +50,26 @@ describe('AuthController', () => {
     const { email, password, name, id } = await userFactory();
 
     const result = await authController.signIn({ email, password });
-    const isValid = jwtService.verify(result.accessToken, {
+    const accessToken = jwtService.verify(result.accessToken, {
       secret: PRIVATE_KEY,
+    });
+    const refreshToken = jwtService.verify(result.refreshToken, {
+      secret: REFRESH_PRIVATE_KEY,
     });
 
     expect(result).toEqual({
       user: { id, name, email },
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     });
-    expect(isValid).toEqual({
-      exp: isValid.exp,
-      iat: isValid.iat,
+    expect(accessToken).toEqual({
+      iat: accessToken.iat,
+      exp: accessToken.iat + 60 * 60,
+      sub: { id, email, name },
+    });
+    expect(refreshToken).toEqual({
+      iat: refreshToken.iat,
+      exp: refreshToken.iat + 60 * 60 * 24 * 30,
       sub: { id, email, name },
     });
   });

@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import { UserWithoutPassword } from '../user/IUserService';
+import { PRIVATE_KEY, REFRESH_PRIVATE_KEY } from 'src/constants';
 
 export type SignInArgs = { email: string; password: string };
 export type UserDb = UserWithoutPassword & { hash_password: string };
@@ -13,6 +14,7 @@ export type SignInResponse = {
     email: string;
   };
   accessToken: string;
+  refreshToken: string;
 };
 
 @Injectable()
@@ -46,8 +48,15 @@ export class AuthService {
       email: existentUser.email,
     };
     const payload = { sub: user };
-    const accessToken = await this.jwtService.signAsync(payload);
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '1h',
+      secret: PRIVATE_KEY,
+    });
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '30d',
+      secret: REFRESH_PRIVATE_KEY,
+    });
 
-    return { user, accessToken };
+    return { user, accessToken, refreshToken };
   }
 }

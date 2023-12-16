@@ -11,7 +11,7 @@ import { PRIVATE_KEY } from 'src/constants';
     JwtModule.register({
       global: true,
       secret: PRIVATE_KEY,
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '1h' },
     }),
   ],
   controllers: [AuthController],
