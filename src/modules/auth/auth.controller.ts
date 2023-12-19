@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Post,
   Request,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from './auth.guard';
@@ -23,8 +24,24 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('verify-token')
-  verifyToken(@Request() req) {
+  async verifyToken(@Request() req) {
     const { user } = req;
-    return { user };
+    return {
+      user: {
+        id: user.sub.id,
+        name: user.sub.name,
+        email: user.sub.email,
+      },
+    };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('refresh-token')
+  async refreshToken(@Request() req) {
+    const [type, refreshToken] = req.headers.authorization?.split(' ') ?? [];
+    if (type !== 'Bearer') {
+      throw new UnauthorizedException();
+    }
+    return await this.authService.refreshToken(refreshToken);
   }
 }

@@ -5,7 +5,7 @@ import { randomBytes } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CreateAboutPageDto } from 'src/modules/about-page/dto/create-about-page.dto';
 import { aboutPageFactory } from 'src/test-utils/about_page-factory';
-import { accessTokenFactory } from 'src/test-utils/access_token-factory';
+import { tokensFactory } from 'src/test-utils/tokens-factory';
 import request from 'supertest';
 import { userFactory } from '../src/test-utils/user-factory';
 import { AppModule } from './../src/app.module';
@@ -57,14 +57,14 @@ describe('AboutPagesController (e2e)', () => {
       },
     };
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
 
     const { body, status } = await request(app.getHttpServer())
       .post('/about-page')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send(mockedData);
     const createdPage = await pgp.db.one(
       'select * from about_pages where user_id=$1;',
@@ -102,13 +102,13 @@ describe('AboutPagesController (e2e)', () => {
       },
     };
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
     const { body, status } = await request(app.getHttpServer())
       .patch('/about-page')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send(data);
 
     const updatedPage = await pgp.db.one(
@@ -135,13 +135,13 @@ describe('AboutPagesController (e2e)', () => {
 
     expect(aboutPage).toBeDefined();
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
     const { body, status } = await request(app.getHttpServer())
       .delete('/about-page')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send();
     const deletedPage = await pgp.db.oneOrNone({
       text: 'select * from about_pages where user_id=$1',

@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { randomBytes } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CreateSkillsPageDto } from 'src/modules/skills-page/dto/create-skills-page.dto';
-import { accessTokenFactory } from 'src/test-utils/access_token-factory';
+import { tokensFactory } from 'src/test-utils/tokens-factory';
 import { skillPageFactory } from 'src/test-utils/skill_page-factory';
 import request from 'supertest';
 import { userFactory } from '../src/test-utils/user-factory';
@@ -118,13 +118,13 @@ describe('SkillsPagesController (e2e)', () => {
       description: `<p>Description, skill page😄 ${randomTestId}</p>`,
     };
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
     const { body, status } = await request(app.getHttpServer())
       .post('/skills-page')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send(mockedData);
 
     const createdPage = await pgp.db.one(
@@ -154,13 +154,13 @@ describe('SkillsPagesController (e2e)', () => {
       title: newValues.title,
     };
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
     const { body, status } = await request(app.getHttpServer())
       .patch('/skills-page')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send(data);
 
     const updatedPage = await pgp.db.one(
@@ -183,13 +183,13 @@ describe('SkillsPagesController (e2e)', () => {
     const createdUser = await userFactory();
     await skillPageFactory(createdUser.id);
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
     const { body, status } = await request(app.getHttpServer())
       .delete(`/skills-page`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send();
     const deletedPage = await pgp.db.oneOrNone({
       text: 'select * from skills_pages where user_id=$1',

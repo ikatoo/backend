@@ -5,7 +5,7 @@ import { randomBytes } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import { User } from 'src/modules/user/IUserService';
-import { accessTokenFactory } from 'src/test-utils/access_token-factory';
+import { tokensFactory } from 'src/test-utils/tokens-factory';
 import { userFactory } from 'src/test-utils/user-factory';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
@@ -89,10 +89,13 @@ describe('UserController (e2e)', () => {
     const userMock = await userFactory();
     const newData = { name: 'Updated User' };
 
-    const token = await accessTokenFactory(userMock.email, userMock.password);
+    const { accessToken } = await tokensFactory(
+      userMock.email,
+      userMock.password,
+    );
     const { body, status } = await request(app.getHttpServer())
       .patch(`/user`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send(newData);
     const { hash_password, ...updatedUser } = await pgp.db.oneOrNone(
       'select id, name, email, hash_password from users where id=$1;',
@@ -114,10 +117,13 @@ describe('UserController (e2e)', () => {
     await userFactory();
     const userMock = await userFactory();
 
-    const token = await accessTokenFactory(userMock.email, userMock.password);
+    const { accessToken } = await tokensFactory(
+      userMock.email,
+      userMock.password,
+    );
     const { body, status } = await request(app.getHttpServer())
       .delete(`/user`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send();
     const deletedUser = await pgp.db.oneOrNone({
       text: 'select name, email, hash_password from users where id=$1',
