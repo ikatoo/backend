@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
+import { advanceBy, clear } from 'jest-date-mock';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
-import { accessTokenFactory } from 'src/test-utils/access_token-factory';
+import { tokensFactory } from 'src/test-utils/tokens-factory';
 import { userFactory } from 'src/test-utils/user-factory';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
 
 describe('/auth (e2e)', () => {
   let app: INestApplication;
-  let pgp: PgPromiseService;
+  let jwtService: JwtService;
   const { compareHash } = new CryptoService();
 
   beforeEach(async () => {
@@ -19,9 +20,13 @@ describe('/auth (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    pgp = moduleFixture.get<PgPromiseService>(PgPromiseService);
+    jwtService = moduleFixture.get<JwtService>(JwtService);
 
     await app.init();
+  });
+
+  afterEach(() => {
+    clear();
   });
 
   it('/sign-in (POST) - success', async () => {
@@ -40,6 +45,7 @@ describe('/auth (e2e)', () => {
         email: createdUser.email,
       },
       accessToken: body.accessToken,
+      refreshToken: body.refreshToken,
     };
 
     expect(body).toEqual(expected);
@@ -98,23 +104,19 @@ describe('/auth (e2e)', () => {
   it('/verify-token (POST) - success', async () => {
     const createdUser = await userFactory();
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
     const { body, status } = await request(app.getHttpServer())
       .post('/auth/verify-token')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Authorization', `Bearer ${accessToken}`);
 
     expect(body).toEqual({
       user: {
-        exp: body.user.exp,
-        iat: body.user.iat,
-        sub: {
-          id: createdUser.id,
-          name: createdUser.name,
-          email: createdUser.email,
-        },
+        id: createdUser.id,
+        name: createdUser.name,
+        email: createdUser.email,
       },
     });
     expect(status).toEqual(HttpStatus.OK);
@@ -130,5 +132,86 @@ describe('/auth (e2e)', () => {
       message: 'Unauthorized',
       statusCode: 401,
     });
+  });
+
+  it('/verify-token (POST) - fail after expiration', async () => {
+    const createdUser = await userFactory();
+    const { accessToken } = await tokensFactory(
+      createdUser.email,
+      createdUser.password,
+    );
+
+    advanceBy(1000 * 60 * 60 * 2);
+
+    const { body, status } = await request(app.getHttpServer())
+      .post('/auth/verify-token')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    expect(status).toEqual(HttpStatus.UNAUTHORIZED);
+  });
+
+  it('/refresh-token (POST) - failed when trying renew without refreshToken', async () => {
+    const { body, status } = await request(app.getHttpServer()).post(
+      '/auth/refresh-token',
+    );
+
+    expect(status).toEqual(HttpStatus.UNAUTHORIZED);
+  });
+
+  it('/refresh-token (POST) - failed when trying renew with accessToken', async () => {
+    const createdUser = await userFactory();
+    const { accessToken } = await tokensFactory(
+      createdUser.email,
+      createdUser.password,
+    );
+
+    advanceBy(1000 * 60 * 60 * 2);
+
+    const { body, status } = await request(app.getHttpServer())
+      .post('/auth/refresh-token')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    expect(status).toEqual(HttpStatus.UNAUTHORIZED);
+  });
+
+  it('/refresh-token (POST) - success with new expiration', async () => {
+    const createdUser = await userFactory();
+    const { accessToken, refreshToken } = await tokensFactory(
+      createdUser.email,
+      createdUser.password,
+    );
+
+    advanceBy(1000 * 60 * 60 * 2);
+
+    const { body, status } = await request(app.getHttpServer())
+      .post('/auth/refresh-token')
+      .set('Authorization', `Bearer ${refreshToken}`);
+
+    const decodedRefreshToken = await jwtService.decode(body.refreshToken);
+    const decodedAccessToken = await jwtService.decode(body.accessToken);
+    const accessTokenExpiration = new Date(decodedAccessToken.exp * 1000);
+    const refreshTokenExpiration = new Date(
+      decodedRefreshToken.exp * 1000,
+    ).toLocaleDateString(undefined, {
+      dateStyle: 'short',
+    });
+    const now = new Date();
+
+    expect(status).toEqual(HttpStatus.OK);
+    expect(body).toEqual({
+      user: {
+        id: createdUser.id,
+        name: createdUser.name,
+        email: createdUser.email,
+      },
+      accessToken: body.accessToken,
+      refreshToken: body.refreshToken,
+    });
+    expect(accessTokenExpiration.getHours()).toEqual(now.getHours() + 1);
+    expect(refreshTokenExpiration).toEqual(
+      new Date(now.setDate(now.getDate() + 30)).toLocaleDateString(undefined, {
+        dateStyle: 'short',
+      }),
+    );
   });
 });

@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomBytes, randomInt } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
-import { accessTokenFactory } from 'src/test-utils/access_token-factory';
+import { tokensFactory } from 'src/test-utils/tokens-factory';
 import { projectFactory } from 'src/test-utils/project-factory';
 import { projectOnUserFactory } from 'src/test-utils/project_on_user-factory';
 import { skillFactory } from 'src/test-utils/skill-factory';
@@ -169,13 +169,13 @@ describe('ProjectsController (e2e)', () => {
       userId: createdUser.id,
     };
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
     const { body, status } = await request(app.getHttpServer())
       .post('/project')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send(mockedData);
 
     const createdProject = await pgp.db
@@ -219,13 +219,13 @@ describe('ProjectsController (e2e)', () => {
       description: `New Desc ${randomTestId}`,
     };
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
     const { body, status } = await request(app.getHttpServer())
       .patch(`/project/${createdProject.id}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send(newData);
 
     const updatedProject = await pgp.db.one(
@@ -249,13 +249,13 @@ describe('ProjectsController (e2e)', () => {
     const createdProject = await projectFactory();
     await projectOnUserFactory(createdProject.id, createdUser.id);
 
-    const token = await accessTokenFactory(
+    const { accessToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
     const { body, status } = await request(app.getHttpServer())
       .delete(`/project/${createdProject.id}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     const deletedProject = await pgp.db.oneOrNone(
