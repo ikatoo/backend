@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -13,10 +14,15 @@ import { ImageService } from './image.service';
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
 
+  @Get()
+  public async getImage(@Body() { publicId }) {
+    return await this.imageService.getImage(publicId);
+  }
+
   @Post()
   @UseInterceptors(FileInterceptor('file'))
-  public async uploadSingleImage(@UploadedFile() file: Express.Multer.File) {
-    const result = await this.imageService.uploadImage(file);
+  public async uploadSingle(@UploadedFile() file: Express.Multer.File) {
+    const result = await this.imageService.uploadImage(file.buffer);
     return result;
   }
 

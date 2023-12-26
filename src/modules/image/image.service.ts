@@ -15,7 +15,7 @@ export class ImageService {
     folder: CLOUDINARY_FOLDER,
   };
 
-  async uploadImage(file: Express.Multer.File): Promise<Image> {
+  async uploadImage(buffer: Buffer): Promise<Image> {
     const { secure_url: url, public_id: publicId } =
       await new Promise<UploadApiResponse>((resolve, reject) =>
         v2.uploader
@@ -23,7 +23,7 @@ export class ImageService {
             if (error) return reject(error);
             resolve(result);
           })
-          .end(file.buffer),
+          .end(buffer),
       );
 
     return {
@@ -34,6 +34,11 @@ export class ImageService {
 
   async deleteImage(publicId: string): Promise<{ result: 'ok' | unknown }> {
     const result = Promise.resolve(v2.uploader.destroy(publicId, this.options));
+    return result;
+  }
+
+  async getImage(publicId: string): Promise<string> {
+    const result = Promise.resolve(v2.url(publicId, this.options));
     return result;
   }
 }
