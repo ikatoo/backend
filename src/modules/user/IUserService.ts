@@ -11,7 +11,7 @@ export type UserWithoutId = Omit<User, 'id'>;
 
 export interface IUserService {
   listAll(): Promise<UserWithoutPassword[]>;
-  create(createUserDto: User): Promise<void>;
+  create(createUserDto: User): Promise<{ id: number }>;
   update(id: number, updateUserDto: Partial<UserWithoutId>): Promise<void>;
   remove(id: number): Promise<void>;
 }

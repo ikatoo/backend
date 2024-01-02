@@ -32,8 +32,8 @@ export class UsersService implements IUserService {
     if (!!existentUser) throw new BadRequestException();
 
     const hashPassword = await this.crypto.hasher(8, password);
-    await this.pgp.db.none(
-      'insert into users(name, email, hash_password) values($1, $2, $3);',
+    return await this.pgp.db.oneOrNone<{ id: number }>(
+      'insert into users(name, email, hash_password) values($1, $2, $3) returning id;',
       [name, email, hashPassword],
     );
   }

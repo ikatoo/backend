@@ -45,7 +45,7 @@ describe('ProjectController', () => {
       userId: createdUser.id,
     };
 
-    await projectController.create(mockedData);
+    const body = await projectController.create(mockedData);
 
     const createdProject = await pgp.db.one(
       `select
@@ -90,6 +90,7 @@ describe('ProjectController', () => {
       skills: mockedData.skills,
     };
 
+    expect(body).toEqual({ id: createdProject.id });
     expect({
       ...createdProject,
       lastUpdate: createdProject.lastUpdate.toLocaleDateString(),

@@ -63,7 +63,9 @@ describe('UserController (e2e)', () => {
       email: mockedUser.email,
     };
 
-    expect(body).toEqual({});
+    expect(body).toEqual({
+      id: createdUser.id,
+    });
     expect(status).toEqual(201);
     expect(createdUser).toEqual(expected);
     expect(await compareHash(mockedUser.password, hash_password)).toBeTruthy();

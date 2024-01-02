@@ -204,7 +204,9 @@ describe('ProjectsController (e2e)', () => {
       }),
     };
 
-    expect(body).toEqual({});
+    expect(body).toEqual({
+      id: createdProject.id,
+    });
     expect(status).toEqual(201);
     expect(createdProject).toEqual(expected);
   });
