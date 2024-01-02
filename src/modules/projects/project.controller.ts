@@ -59,6 +59,10 @@ export class ProjectController {
       });
       await this.skillsService.createOnProject(skillId, projectOnUser.id);
     });
+
+    return {
+      id: projectId,
+    };
   }
 
   @UseGuards(AuthGuard)
