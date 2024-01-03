@@ -54,7 +54,8 @@ describe('ProjectsController', () => {
         const users = await pgp.db.manyOrNone<{ id: number; name: string }>(
           `select
           users.id as id,
-          users.name as name
+          users.name as name,
+          users.email as email
         from
           users,
           projects,
