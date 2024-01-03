@@ -51,17 +51,18 @@ describe('ProjectsController (e2e)', () => {
       projects.map(async (project) => {
         const users = await pgp.db.manyOrNone<{ id: number; name: string }>(
           `select
-          users.id as id,
-          users.name as name
-        from
-          users,
-          projects,
-          projects_on_users as pou 
-        where
-          pou.user_id=users.id and
-          pou.project_id=projects.id and
-          projects.id=$1
-        ;`,
+            users.id as id,
+            users.name as name,
+            users.email as email
+          from
+            users,
+            projects,
+            projects_on_users as pou 
+          where
+            pou.user_id=users.id and
+            pou.project_id=projects.id and
+            projects.id=$1
+          ;`,
           [project.id],
         );
 
