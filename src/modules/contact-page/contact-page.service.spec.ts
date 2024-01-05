@@ -26,8 +26,12 @@ describe('ContactPageService', () => {
   it('should get contact-page by user-id', async () => {
     const createdUser = await userFactory();
     const createdPage = await contactPageFactory(createdUser.id).then(
-      ({ user_id: userId, ...page }) => ({
+      ({ user_id: userId, localization, ...page }) => ({
         ...page,
+        localization: {
+          lat: +localization['x'],
+          lng: +localization['y'],
+        },
         userId,
       }),
     );

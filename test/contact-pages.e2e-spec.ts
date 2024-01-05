@@ -31,7 +31,14 @@ describe('ContactPagesController (e2e)', () => {
     const createdPage = await contactPageFactory(createdUser.id);
     const { user_id, ...page } = createdPage;
     const expected = {
-      ...page,
+      id: createdPage.id,
+      title: createdPage.title,
+      description: createdPage.description,
+      email: createdPage.email,
+      localization: {
+        lat: +createdPage.localization['x'],
+        lng: +createdPage.localization['y'],
+      },
       userId: createdUser.id,
     };
 
