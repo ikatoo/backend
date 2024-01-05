@@ -25,7 +25,7 @@ export class ContactPageService {
   }
 
   async findByUser(userId: number) {
-    const page = await this.pgp.db.oneOrNone(
+    const { localization, ...page } = await this.pgp.db.oneOrNone(
       `select
           id,
           title,
@@ -38,7 +38,13 @@ export class ContactPageService {
       [userId],
     );
 
-    return page;
+    return {
+      localization: {
+        lat: +localization['x'],
+        lng: +localization['y'],
+      },
+      ...page,
+    };
   }
 
   async update(userId: number, updateContactPageDto: UpdateContactPageDto) {
