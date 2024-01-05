@@ -12,7 +12,11 @@ export class ContactPageService {
       .toString()
       .replace('userId', 'user_id');
     const values = Object.values(createContactPageDto)
-      .map((value) => `'${value}'`)
+      .map((value) => {
+        if (typeof value === 'object' && !!value)
+          return `'(${value.lat}, ${value.lng})'`;
+        return `'${value}'`;
+      })
       .toString();
     await this.pgp.db.none(
       'insert into contact_pages($1:raw) values ($2:raw);',
@@ -39,7 +43,12 @@ export class ContactPageService {
 
   async update(userId: number, updateContactPageDto: UpdateContactPageDto) {
     const fieldsValues = Object.keys(updateContactPageDto)
-      .map((field) => `${field}='${updateContactPageDto[field]}'`)
+      .map((field) => {
+        if (field === 'localization')
+          return `${field}='(${updateContactPageDto[field].lat}, ${updateContactPageDto[field].lng})'`;
+
+        return `${field}='${updateContactPageDto[field]}'`;
+      })
       .toString();
 
     await this.pgp.db.none(

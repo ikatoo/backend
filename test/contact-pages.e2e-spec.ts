@@ -47,23 +47,18 @@ describe('ContactPagesController (e2e)', () => {
     const createdUser = await userFactory();
 
     const randomTestId = randomBytes(10).toString('hex');
-    const mockedData: CreateContactPageDto = {
+    const randomNumber = randomInt(10, 100).toLocaleString('en-US', {
+      minimumIntegerDigits: 3,
+      useGrouping: false,
+    });
+    const mockedData: Omit<CreateContactPageDto, 'userId'> = {
       title: `${randomTestId} title`,
       description: `${randomTestId} description`,
       email: `${randomTestId}@email.com`,
-      localization: `(${parseFloat(
-        `-22.4191${randomInt(10, 100)}`,
-      ).toLocaleString('en-US', {
-        minimumFractionDigits: 7,
-        useGrouping: false,
-      })}, ${parseFloat(`-46.8320${randomInt(10, 100)}`).toLocaleString(
-        'en-US',
-        {
-          minimumFractionDigits: 7,
-          useGrouping: false,
-        },
-      )})`,
-      userId: createdUser.id,
+      localization: {
+        lat: +`-22.4191${randomNumber}`,
+        lng: +`-46.8320${randomNumber}`,
+      },
     };
 
     const { accessToken } = await tokensFactory(
@@ -80,13 +75,10 @@ describe('ContactPagesController (e2e)', () => {
       .one('select * from contact_pages where user_id=$1;', [createdUser.id])
       .then(({ localization, ...page }) => ({
         ...page,
-        localization: `(${parseFloat(localization.x).toLocaleString('en-US', {
-          minimumFractionDigits: 7,
-          useGrouping: false,
-        })}, ${parseFloat(localization.y).toLocaleString('en-US', {
-          minimumFractionDigits: 7,
-          useGrouping: false,
-        })})`,
+        localization: {
+          lat: localization.x,
+          lng: localization.y,
+        },
       }));
     const expected = {
       id: createdPage.id,
@@ -105,20 +97,16 @@ describe('ContactPagesController (e2e)', () => {
   it('/contact-page (PATCH)', async () => {
     const createdUser = await userFactory();
     const randomTestId = randomBytes(10).toString('hex');
-    const newValues = {
+    const randomNumber = randomInt(10, 100).toLocaleString('en-US', {
+      minimumIntegerDigits: 3,
+      useGrouping: false,
+    });
+    const newValues: Partial<Omit<CreateContactPageDto, 'userId'>> = {
       title: `New Title ${randomTestId}`,
-      localization: `(${parseFloat(
-        `-22.4191${randomInt(10, 100)}`,
-      ).toLocaleString('en-US', {
-        minimumFractionDigits: 7,
-        useGrouping: false,
-      })}, ${parseFloat(`-46.8320${randomInt(10, 100)}`).toLocaleString(
-        'en-US',
-        {
-          minimumFractionDigits: 7,
-          useGrouping: false,
-        },
-      )})`,
+      localization: {
+        lat: +`-22.4191${randomNumber}`,
+        lng: +`-46.8320${randomNumber}`,
+      },
     };
     const existentPage = await contactPageFactory(createdUser.id);
 
@@ -135,16 +123,10 @@ describe('ContactPagesController (e2e)', () => {
       .one('select * from contact_pages where user_id=$1;', [createdUser.id])
       .then((page) => ({
         ...page,
-        localization: `(${parseFloat(page.localization.x).toLocaleString(
-          'en-US',
-          {
-            minimumFractionDigits: 7,
-            useGrouping: false,
-          },
-        )}, ${parseFloat(page.localization.y).toLocaleString('en-US', {
-          minimumFractionDigits: 7,
-          useGrouping: false,
-        })})`,
+        localization: {
+          lat: page.localization.x,
+          lng: page.localization.y,
+        },
       }));
     const expected = {
       id: existentPage.id,

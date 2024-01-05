@@ -4,6 +4,7 @@ import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
 import { contactPageFactory } from 'src/test-utils/contact_page-factory';
 import { userFactory } from 'src/test-utils/user-factory';
 import { ContactPageService } from './contact-page.service';
+import { CreateContactPageDto } from './dto/create-contact-page.dto';
 
 describe('ContactPageService', () => {
   let contactPageService: ContactPageService;
@@ -39,17 +40,18 @@ describe('ContactPageService', () => {
   it('should create contact-page', async () => {
     const createdUser = await userFactory();
     const randomTestId = randomBytes(10).toString('hex');
-    const mockedData = {
+    const randomNumber = randomInt(10, 100).toLocaleString('en-US', {
+      minimumIntegerDigits: 3,
+      useGrouping: false,
+    });
+    const mockedData: CreateContactPageDto = {
       title: `${randomTestId} title`,
       description: `${randomTestId} description`,
       email: `${randomTestId}@email.com`,
-      localization: `(-22.4191${randomInt(10, 100).toLocaleString('en-US', {
-        minimumIntegerDigits: 3,
-        useGrouping: false,
-      })}, -46.8320${randomInt(10, 100).toLocaleString('en-US', {
-        minimumIntegerDigits: 3,
-        useGrouping: false,
-      })})`,
+      localization: {
+        lat: +`-22.4191${randomNumber}`,
+        lng: +`-46.8320${randomNumber}`,
+      },
       userId: createdUser.id,
     };
 
@@ -69,13 +71,10 @@ describe('ContactPageService', () => {
       )
       .then(({ localization, ...page }) => ({
         ...page,
-        localization: `(${parseFloat(localization.x).toLocaleString('en-US', {
-          minimumSignificantDigits: 9,
-          useGrouping: false,
-        })}, ${parseFloat(localization.y).toLocaleString('en-US', {
-          minimumSignificantDigits: 9,
-          useGrouping: false,
-        })})`,
+        localization: {
+          lat: localization.x,
+          lng: localization.y,
+        },
       }));
 
     expect(result).toEqual(mockedData);
@@ -84,22 +83,23 @@ describe('ContactPageService', () => {
   it('should update a existent contact-page', async () => {
     const createdUser = await userFactory();
     const randomTestId = randomBytes(10).toString('hex');
+    const randomNumber = randomInt(10, 100).toLocaleString('en-US', {
+      minimumIntegerDigits: 3,
+      useGrouping: false,
+    });
     const existentPage = await contactPageFactory(createdUser.id).then(
       ({ user_id: userId, ...page }) => ({
         ...page,
         userId,
       }),
     );
-    const newData = {
+    const newData: Partial<CreateContactPageDto> = {
       description: `${randomTestId} description`,
       email: `${randomTestId}@email.com`,
-      localization: `(-22.4191${randomInt(10, 100).toLocaleString('en-US', {
-        minimumIntegerDigits: 3,
-        useGrouping: false,
-      })}, -46.8320${randomInt(10, 100).toLocaleString('en-US', {
-        minimumIntegerDigits: 3,
-        useGrouping: false,
-      })})`,
+      localization: {
+        lat: +`-22.4191${randomNumber}`,
+        lng: +`-46.8320${randomNumber}`,
+      },
     };
     const expected = {
       ...existentPage,
@@ -112,7 +112,10 @@ describe('ContactPageService', () => {
       .one('select * from contact_pages where user_id=$1;', [createdUser.id])
       .then(({ localization, user_id: userId, ...page }) => ({
         ...page,
-        localization: `(${localization.x}, ${localization.y})`,
+        localization: {
+          lat: localization.x,
+          lng: localization.y,
+        },
         userId,
       }));
 

@@ -21,8 +21,15 @@ export class ContactPageController {
 
   @UseGuards(AuthGuard)
   @Post()
-  async create(@Body() createContactPageDto: CreateContactPageDto) {
-    await this.contactPageService.create(createContactPageDto);
+  async create(
+    @Request() req,
+    @Body() createContactPageDto: CreateContactPageDto,
+  ) {
+    const { id: userId } = req.user.sub;
+    await this.contactPageService.create({
+      userId,
+      ...createContactPageDto,
+    });
   }
 
   @Get('/user-id/:userId')
