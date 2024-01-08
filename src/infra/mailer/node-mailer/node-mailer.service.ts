@@ -1,18 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { IMail, Mail, MailerResult } from '../IMail';
-import {
-  SMTP_SERVER_ADDRESS,
-  SMTP_SERVER_PORT,
-  SMTP_SECURE,
-  SMTP_USERNAME,
-  SMTP_PASSWORD,
-} from 'src/constants';
 import { createTransport } from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import {
+  SMTP_PASSWORD,
+  SMTP_SECURE,
+  SMTP_SERVER_ADDRESS,
+  SMTP_SERVER_PORT,
+  SMTP_USERNAME,
+} from 'src/constants';
+import { IMail, MailerResult } from '../IMail';
+import { Email } from '../entities/mailer.entity';
 
 @Injectable()
 export class NodeMailerService implements IMail {
-  async send(mail: Mail): Promise<MailerResult> {
+  async send(email: Email): Promise<MailerResult> {
+    const newEmail = new Email(email);
     const options: SMTPTransport.Options = {
       host: SMTP_SERVER_ADDRESS,
       port: SMTP_SERVER_PORT,
@@ -24,7 +26,7 @@ export class NodeMailerService implements IMail {
     };
     const transporter = createTransport(options);
 
-    const { response, ...info } = await transporter.sendMail(mail);
+    const { response, ...info } = await transporter.sendMail(newEmail);
 
     const accepted = !!info.accepted.length && !info.rejected.length;
 
