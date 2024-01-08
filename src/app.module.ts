@@ -8,6 +8,7 @@ import { SkillsModule } from './modules/skills/skills.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SkillsPageModule } from './modules/skills-page/skills-page.module';
 import { ImageModule } from './modules/image/image.module';
+import { NodeMailerService } from './infra/mailer/node-mailer/node-mailer.service';
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { ImageModule } from './modules/image/image.module';
     ImageModule,
   ],
   controllers: [],
-  providers: [PgPromiseService],
+  providers: [PgPromiseService, NodeMailerService],
 })
 export class AppModule {}
