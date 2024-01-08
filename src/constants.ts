@@ -22,3 +22,16 @@ export const CLOUDINARY_APISECRET =
   NODE_ENV === 'test' ? 'test' : process.env.CLOUDINARY_APISECRET;
 export const CLOUDINARY_URL =
   NODE_ENV === 'test' ? 'test' : process.env.CLOUDINARY_URL;
+
+export const SMTP_SERVER_ADDRESS =
+  NODE_ENV === 'test' ? 'test' : process.env.SMTP_SERVER_ADDRESS;
+export const SMTP_SERVER_PORT =
+  NODE_ENV === 'test' ? 587 : +process.env.SMTP_SERVER_PORT;
+export const SMTP_SECURE =
+  NODE_ENV === 'test'
+    ? false
+    : `${process.env.SMTP_SECURE}`.toLowerCase() === 'true';
+export const SMTP_USERNAME =
+  NODE_ENV === 'test' ? 'test' : process.env.SMTP_USERNAME;
+export const SMTP_PASSWORD =
+  NODE_ENV === 'test' ? 'test' : process.env.SMTP_PASSWORD;
