@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { createTransport } from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import {
@@ -14,7 +14,13 @@ import { Email } from '../entities/mailer.entity';
 @Injectable()
 export class NodeMailerService implements IMail {
   async send(email: Email): Promise<MailerResult> {
-    const newEmail = new Email(email);
+    let newEmail: Email;
+    try {
+      newEmail = new Email(email);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+
     const options: SMTPTransport.Options = {
       host: SMTP_SERVER_ADDRESS,
       port: SMTP_SERVER_PORT,
@@ -30,6 +36,9 @@ export class NodeMailerService implements IMail {
 
     const accepted = !!info.accepted.length && !info.rejected.length;
 
-    return { accepted, response };
+    return {
+      accepted,
+      response: response.startsWith('250 Accepted') ? 'ok' : 'failed',
+    };
   }
 }

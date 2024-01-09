@@ -11,6 +11,8 @@ describe('NodeMailerService', () => {
     }).compile();
 
     mailerService = module.get<NodeMailerService>(NodeMailerService);
+
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -27,7 +29,7 @@ describe('NodeMailerService', () => {
 
     jest.spyOn(nodemailer, 'createTransport').mockReturnValue({
       sendMail: jest.fn().mockResolvedValueOnce({
-        response: 'ok',
+        response: '250 Accepted',
         envelope: {},
         messageId: 'messageID',
         accepted: 'accepted',
