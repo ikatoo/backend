@@ -14,31 +14,31 @@ import { Email } from '../entities/mailer.entity';
 @Injectable()
 export class NodeMailerService implements IMail {
   async send(email: Email): Promise<MailerResult> {
-    let newEmail: Email;
     try {
-      newEmail = new Email(email);
+      const newEmail = new Email(email);
+      const options: SMTPTransport.Options = {
+        host: SMTP_SERVER_ADDRESS,
+        port: SMTP_SERVER_PORT,
+        secure: SMTP_SECURE,
+        auth: {
+          user: SMTP_USERNAME,
+          pass: SMTP_PASSWORD,
+        },
+      };
+      const transporter = createTransport(options);
+
+      const { response, ...info } = await transporter.sendMail(newEmail);
+
+      const accepted = !!info.accepted.length && !info.rejected.length;
+
+      return {
+        accepted,
+        response: response.startsWith('250 Accepted') ? 'ok' : 'failed',
+      };
     } catch (error) {
-      throw new BadRequestException(error.message);
+      if (error.message === 'Invalid email address')
+        throw new BadRequestException(error.message);
+      throw new Error(error);
     }
-
-    const options: SMTPTransport.Options = {
-      host: SMTP_SERVER_ADDRESS,
-      port: SMTP_SERVER_PORT,
-      secure: SMTP_SECURE,
-      auth: {
-        user: SMTP_USERNAME,
-        pass: SMTP_PASSWORD,
-      },
-    };
-    const transporter = createTransport(options);
-
-    const { response, ...info } = await transporter.sendMail(newEmail);
-
-    const accepted = !!info.accepted.length && !info.rejected.length;
-
-    return {
-      accepted,
-      response: response.startsWith('250 Accepted') ? 'ok' : 'failed',
-    };
   }
 }
