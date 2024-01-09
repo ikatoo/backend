@@ -44,9 +44,24 @@ describe('NodeMailerService', () => {
     expect(response).toEqual('ok');
   });
 
-  test('should fail on send mail', async () => {
+  test('should fail on send mail with invalid email address', async () => {
     nodemailer.createTransport = jest.fn().mockResolvedValue({
       sendMail: jest.fn().mockResolvedValue({}),
+    });
+
+    await expect(
+      mailerService.send({
+        from: 'from@email.com',
+        to: 'to@invalid-email',
+        subject: 'subject test',
+        message: '<p>message</p>',
+      }),
+    ).rejects.toThrowError('Invalid email address');
+  });
+
+  test('should fail on send mail with unknown error', async () => {
+    nodemailer.createTransport = jest.fn().mockResolvedValue({
+      sendMail: jest.fn().mockRejectedValue({}),
     });
 
     await expect(
