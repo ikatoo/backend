@@ -28,7 +28,7 @@ describe('ProjectsController (e2e)', () => {
       from: 'from@email.com',
       to: 'to@email.com',
       subject: 'subject test',
-      message: '<p>message</p>',
+      message: `<p>message ${new Date()}</p>`,
     };
 
     const { body, status } = await request(app.getHttpServer())

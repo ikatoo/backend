@@ -27,7 +27,11 @@ export class NodeMailerService implements IMail {
       };
       const transporter = createTransport(options);
 
-      const { response, ...info } = await transporter.sendMail(newEmail);
+      const { response, ...info } = await transporter.sendMail({
+        ...newEmail,
+        html: newEmail.message,
+        text: newEmail.message,
+      });
 
       const accepted = !!info.accepted.length && !info.rejected.length;
 
