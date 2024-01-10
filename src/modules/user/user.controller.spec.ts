@@ -6,6 +6,7 @@ import { UserController } from './user.controller';
 import { UsersService } from './user.service';
 import { randomBytes } from 'crypto';
 import { User } from './IUserService';
+import { NodeMailerService } from 'src/infra/mailer/node-mailer/node-mailer.service';
 
 describe('UserController', () => {
   let userController: UserController;
@@ -15,7 +16,12 @@ describe('UserController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
-      providers: [UsersService, CryptoService, PgPromiseService],
+      providers: [
+        UsersService,
+        CryptoService,
+        PgPromiseService,
+        NodeMailerService,
+      ],
       imports: [AppModule],
     }).compile();
 

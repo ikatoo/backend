@@ -14,4 +14,5 @@ export interface IUserService {
   create(createUserDto: User): Promise<{ id: number }>;
   update(id: number, updateUserDto: Partial<UserWithoutId>): Promise<void>;
   remove(id: number): Promise<void>;
+  recoveryPassword(email: string): Promise<void>;
 }
