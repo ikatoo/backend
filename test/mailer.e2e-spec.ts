@@ -20,10 +20,6 @@ describe('ProjectsController (e2e)', () => {
 
   it('/ (POST) - success on send email', async () => {
     const createdUser = await userFactory();
-    const { accessToken } = await tokensFactory(
-      createdUser.email,
-      createdUser.password,
-    );
     const mock = {
       from: 'from@email.com',
       to: 'to@email.com',
@@ -33,7 +29,6 @@ describe('ProjectsController (e2e)', () => {
 
     const { body, status } = await request(app.getHttpServer())
       .post('/mailer')
-      .set('Authorization', `Bearer ${accessToken}`)
       .send(mock);
 
     expect(status).toEqual(200);
@@ -43,10 +38,6 @@ describe('ProjectsController (e2e)', () => {
 
   it('/ (POST) - failed on send email', async () => {
     const createdUser = await userFactory();
-    const { accessToken } = await tokensFactory(
-      createdUser.email,
-      createdUser.password,
-    );
     const mock = {
       from: 'from@email',
       to: 'to@email.com',
@@ -56,7 +47,6 @@ describe('ProjectsController (e2e)', () => {
 
     const { body, status } = await request(app.getHttpServer())
       .post('/mailer')
-      .set('Authorization', `Bearer ${accessToken}`)
       .send(mock);
 
     expect(body).toEqual({
