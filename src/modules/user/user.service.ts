@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
+import { NodeMailerService } from 'src/infra/mailer/node-mailer/node-mailer.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
 import {
   IUserService,
@@ -12,7 +14,26 @@ export class UsersService implements IUserService {
   constructor(
     private readonly pgp: PgPromiseService,
     private readonly crypto: CryptoService,
+    private readonly mailer: NodeMailerService,
   ) {}
+
+  async recoveryPassword(email: string): Promise<void> {
+    const existentUser = await this.pgp.db.oneOrNone(
+      'select * from users where email ilike $1',
+      [email],
+    );
+
+    if (!existentUser) throw new BadRequestException();
+
+    const randomPassword = randomBytes(8).toString('hex');
+    await this.update(existentUser.id, { password: randomPassword });
+    await this.mailer.send({
+      from: email,
+      to: email,
+      subject: 'Recovery Password from iKatoo',
+      message: `Your new password is: ${randomPassword}`,
+    });
+  }
 
   async listAll() {
     const users = await this.pgp.db.manyOrNone(

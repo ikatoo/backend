@@ -2,23 +2,32 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { randomBytes } from 'crypto';
 import { IDatabase } from 'pg-promise';
 import { PgPromiseService } from 'src/infra/db/pg-promise/pg-promise.service';
+import { NodeMailerService } from 'src/infra/mailer/node-mailer/node-mailer.service';
 import { CryptoService } from 'src/infra/security/crypto/crypto.service';
+import { userFactory } from 'src/test-utils/user-factory';
 import { UsersService } from './user.service';
 
 describe('UserService', () => {
   let userService: UsersService;
   let pgp: PgPromiseService;
   let db: IDatabase<any>;
-  const crypto = new CryptoService();
+  const cryptoService = new CryptoService();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService, CryptoService, PgPromiseService],
+      providers: [
+        UsersService,
+        CryptoService,
+        PgPromiseService,
+        NodeMailerService,
+      ],
     }).compile();
 
     userService = module.get<UsersService>(UsersService);
     pgp = module.get<PgPromiseService>(PgPromiseService);
     db = pgp.db;
+
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -41,7 +50,9 @@ describe('UserService', () => {
     const { password, ...expected } = mockedUser;
 
     expect(createdUser).toEqual({ ...expected, enabled: false });
-    expect(await crypto.compareHash(password, hash_password)).toBeTruthy();
+    expect(
+      await cryptoService.compareHash(password, hash_password),
+    ).toBeTruthy();
     expect(id).toBeGreaterThan(0);
   });
 
@@ -77,11 +88,17 @@ describe('UserService', () => {
       email: mockedUser.email,
     });
     expect(
-      await crypto.compareHash(mockedUser.password, updatedUser.hash_password),
+      await cryptoService.compareHash(
+        mockedUser.password,
+        updatedUser.hash_password,
+      ),
     ).toBeFalsy();
 
     expect(
-      await crypto.compareHash(newValues.password, updatedUser.hash_password),
+      await cryptoService.compareHash(
+        newValues.password,
+        updatedUser.hash_password,
+      ),
     ).toBeTruthy();
   });
 
@@ -114,5 +131,19 @@ describe('UserService', () => {
     );
 
     expect(deletedUser).toBeNull();
+  });
+
+  it('should be send email with new password', async () => {
+    const spy = jest
+      .spyOn(NodeMailerService.prototype, 'send')
+      .mockResolvedValueOnce({
+        accepted: true,
+        response: '250 Accepted',
+      });
+    const mockedUser = await userFactory();
+
+    await userService.recoveryPassword(mockedUser.email);
+
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 });
