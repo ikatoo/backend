@@ -41,7 +41,7 @@ describe('NodeMailerService', () => {
     const { accepted, response } = await mailerService.send(mock);
 
     expect(accepted).toBeTruthy();
-    expect(response).toEqual('ok');
+    expect(response).toEqual('250 Accepted');
   });
 
   test('should fail on send mail with invalid email address', async () => {
