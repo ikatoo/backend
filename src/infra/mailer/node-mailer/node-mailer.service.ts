@@ -37,7 +37,7 @@ export class NodeMailerService implements IMail {
 
       return {
         accepted,
-        response: response.startsWith('250 Accepted') ? 'ok' : 'failed',
+        response,
       };
     } catch (error) {
       if (error.message === 'Invalid email address')

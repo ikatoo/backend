@@ -37,10 +37,8 @@ describe('ProjectsController (e2e)', () => {
       .send(mock);
 
     expect(status).toEqual(200);
-    expect(body).toEqual({
-      accepted: true,
-      response: 'ok',
-    });
+    expect(body.accepted).toBeTruthy();
+    expect(`${body.response}`.startsWith('250 Accepted')).toBeTruthy();
   });
 
   it('/ (POST) - failed on send email', async () => {
