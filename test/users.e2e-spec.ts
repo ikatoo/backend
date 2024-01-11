@@ -136,4 +136,25 @@ describe('UserController (e2e)', () => {
     expect(body).toEqual({});
     expect(deletedUser).toBeNull();
   });
+
+  it('/user/recovery-password (POST)', async () => {
+    const userMock = await userFactory();
+
+    const { status } = await request(app.getHttpServer())
+      .post(`/user/recovery-password`)
+      .send({ email: userMock.email });
+
+    expect(status).toEqual(200);
+  });
+
+  it('/user/recovery-password (POST) - fail with invalid email', async () => {
+    const userMock = await userFactory();
+
+    const { status, body } = await request(app.getHttpServer())
+      .post(`/user/recovery-password`)
+      .send({ email: 'invalid@email.com' });
+
+    expect(status).toEqual(400);
+    expect(body).toEqual({ message: 'Bad Request', statusCode: 400 });
+  });
 });

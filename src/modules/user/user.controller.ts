@@ -16,6 +16,12 @@ import { UsersService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UsersService) {}
 
+  @HttpCode(200)
+  @Post('recovery-password')
+  async recoveryPassword(@Body() { email }: { email: string }) {
+    await this.userService.recoveryPassword(email);
+  }
+
   @Post()
   async create(@Body() createUserDto: User) {
     return await this.userService.create(createUserDto);
