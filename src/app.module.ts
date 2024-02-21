@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { SkillsPageModule } from './modules/skills-page/skills-page.module';
 import { ImageModule } from './modules/image/image.module';
 import { MailerModule } from './infra/mailer/mailer.module';
+import { RootController } from './root/root.controller';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { MailerModule } from './infra/mailer/mailer.module';
     ImageModule,
     MailerModule,
   ],
-  controllers: [],
+  controllers: [RootController],
   providers: [PgPromiseService],
 })
 export class AppModule {}
