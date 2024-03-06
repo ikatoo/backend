@@ -1,12 +1,13 @@
 name: Build Container
 
 on:
-  merge_group:
+  pull_request:
     types:
-      - checks_requested
+      - closed
 
 jobs:
   build:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
