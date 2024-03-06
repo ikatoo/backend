@@ -1,8 +1,10 @@
 # =====
 # build
-FROM node:20-buster AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /home/node/app
+
+COPY . .
 
 ARG POSTGRES_HOSTNAME
 ARG POSTGRES_PASSWORD
@@ -20,6 +22,7 @@ ARG SMTP_SECURE
 ARG SMTP_SERVER_ADDRESS
 ARG SMTP_SERVER_PORT
 ARG SMTP_USERNAME
+ARG DEVELOPMENT
 
 ENV POSTGRES_HOSTNAME=${POSTGRES_HOSTNAME}
 ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -37,10 +40,8 @@ ENV SMTP_SECURE=${SMTP_SECURE}
 ENV SMTP_SERVER_ADDRESS=${SMTP_SERVER_ADDRESS}
 ENV SMTP_SERVER_PORT=${SMTP_SERVER_PORT}
 ENV SMTP_USERNAME=${SMTP_USERNAME}
+ENV DEVELOPMENT=false
 
-RUN apt update && \
-  apt install git -y && \
-  git clone https://github.com/ikatoo/backend.git . && \
-  npm install
+RUN npm install && npm run build
 
-CMD npm run start:dev
+CMD DEVELOPMENT && npm run start:dev || npm run start:prod
