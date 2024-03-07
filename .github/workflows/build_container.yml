@@ -27,7 +27,4 @@ jobs:
         run: docker build --tag ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.ref_name }} .
 
       - name: Push Container
-        run: |
-          docker images
-          # docker push ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.ref_name }}
-          # docker push ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.sha }}
+        run: docker push ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.ref_name }}
