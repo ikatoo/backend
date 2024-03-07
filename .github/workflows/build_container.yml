@@ -28,5 +28,6 @@ jobs:
 
       - name: Push Container
         run: |
-          docker push ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.ref_name }}
-          docker push ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.sha }}
+          docker images
+          # docker push ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.ref_name }}
+          # docker push ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.sha }}
