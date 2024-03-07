@@ -24,7 +24,7 @@ jobs:
           password: ${{ secrets.GHP_TOKEN }}
 
       - name: Build Container
-        run: docker build --tag ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.ref_name }} .
+        run: docker build --tag ghcr.io/${{ github.repository }}:${{ github.ref_name }} .
 
       - name: Push Container
-        run: docker push ghcr.io/${{ github.repository }}/ikatoo-backend:${{ github.ref_name }}
+        run: docker push ghcr.io/${{ github.repository }}:${{ github.ref_name }}
