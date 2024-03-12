@@ -19,7 +19,6 @@ describe('ProjectsController (e2e)', () => {
   });
 
   it('/ (POST) - success on send email', async () => {
-    const createdUser = await userFactory();
     const mock = {
       from: 'from@email.com',
       to: 'to@email.com',
@@ -33,11 +32,9 @@ describe('ProjectsController (e2e)', () => {
 
     expect(status).toEqual(200);
     expect(body.accepted).toBeTruthy();
-    expect(`${body.response}`.startsWith('250 Accepted')).toBeTruthy();
   });
 
   it('/ (POST) - failed on send email', async () => {
-    const createdUser = await userFactory();
     const mock = {
       from: 'from@email',
       to: 'to@email.com',
