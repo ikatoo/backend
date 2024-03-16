@@ -44,4 +44,4 @@ ENV DEVELOPMENT=false
 
 RUN npm install && npm run build
 
-CMD DEVELOPMENT && npm run start:dev || npm run start:prod
+CMD $DEVELOPMENT && npm run start:dev || npm run start:prod
