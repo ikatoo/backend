@@ -22,3 +22,35 @@ services:
       - ${ADMINER_PORT}:8080
     environment:
       ADMINER_DEFAULT_SERVER: postgres
+
+  backend:
+    image: node:alpine
+    user: node
+    working_dir: /home/node/app
+    restart: on-failure:3
+    links:
+      - postgres:postgres
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - ./:/home/node/app
+    environment:
+      PORT: ${PORT}
+      POSTGRES_HOSTNAME: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DBNAME: ${POSTGRES_DBNAME}
+      ADMINER_PORT: ${ADMINER_PORT}
+      PRIVATE_KEY: ${PRIVATE_KEY}
+      REFRESH_PRIVATE_KEY: ${REFRESH_PRIVATE_KEY}
+      CLOUDINARY_APIKEY: ${CLOUDINARY_APIKEY}
+      CLOUDINARY_APISECRET: ${CLOUDINARY_APISECRET}
+      CLOUDINARY_CLOUDNAME: ${CLOUDINARY_CLOUDNAME}
+      CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER}
+      CLOUDINARY_URL: ${CLOUDINARY_URL}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_SERVER_ADDRESS: ${SMTP_SERVER_ADDRESS}
+      SMTP_SERVER_PORT: ${SMTP_SERVER_PORT}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+    command: npm run start:dev
