@@ -3,7 +3,7 @@ on: pull_request
 
 jobs:
   tests:
-    name: Tests
+    name: Tests on Pull Requests
     runs-on: ubuntu-latest
     timeout-minutes: 2
     strategy:
@@ -38,7 +38,7 @@ jobs:
     container:
       image: postgres:14
     steps:
-      - name: Check out repository code
+      - name: Checkout repository code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -56,7 +56,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Nest Unit Tests
+      - name: Nest E2E Tests
         run: npm run test:e2e
 
       - name: Send email when fail tests
