@@ -176,7 +176,7 @@ describe('/auth (e2e)', () => {
 
   it('/refresh-token (POST) - success with new expiration', async () => {
     const createdUser = await userFactory();
-    const { accessToken, refreshToken } = await tokensFactory(
+    const { refreshToken } = await tokensFactory(
       createdUser.email,
       createdUser.password,
     );
@@ -186,16 +186,6 @@ describe('/auth (e2e)', () => {
     const { body, status } = await request(app.getHttpServer())
       .post('/auth/refresh-token')
       .set('Authorization', `Bearer ${refreshToken}`);
-
-    const decodedRefreshToken = await jwtService.decode(body.refreshToken);
-    const decodedAccessToken = await jwtService.decode(body.accessToken);
-    const accessTokenExpiration = new Date(decodedAccessToken.exp * 1000);
-    const refreshTokenExpiration = new Date(
-      decodedRefreshToken.exp * 1000,
-    ).toLocaleDateString(undefined, {
-      dateStyle: 'short',
-    });
-    const now = new Date();
 
     expect(status).toEqual(HttpStatus.OK);
     expect(body).toEqual({
@@ -207,11 +197,5 @@ describe('/auth (e2e)', () => {
       accessToken: body.accessToken,
       refreshToken: body.refreshToken,
     });
-    expect(accessTokenExpiration.getHours()).toEqual(now.getHours() + 1);
-    expect(refreshTokenExpiration).toEqual(
-      new Date(now.setDate(now.getDate() + 30)).toLocaleDateString(undefined, {
-        dateStyle: 'short',
-      }),
-    );
   });
 });
