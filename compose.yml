@@ -1,6 +1,7 @@
 services:
 
   postgres:
+    container_name: postgres
     image: postgres:14-alpine
     restart: on-failure:3
     volumes:
@@ -14,6 +15,7 @@ services:
       - 5432:5432
   
   adminer:
+    container_name: adminer
     image: adminer
     restart: on-failure:3
     links:
@@ -24,6 +26,7 @@ services:
       ADMINER_DEFAULT_SERVER: postgres
 
   backend:
+    container_name: backend
     image: node:alpine
     user: node
     working_dir: /home/node/app
