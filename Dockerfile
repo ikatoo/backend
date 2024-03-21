@@ -42,6 +42,4 @@ ENV SMTP_SERVER_PORT=${SMTP_SERVER_PORT}
 ENV SMTP_USERNAME=${SMTP_USERNAME}
 ENV DEVELOPMENT=false
 
-RUN npm install && npm run build
-
-CMD $DEVELOPMENT && npm run start:dev || npm run start:prod
+CMD $DEVELOPMENT && npm install && npm run start:dev || npm install && npm run build && npm run start:prod
