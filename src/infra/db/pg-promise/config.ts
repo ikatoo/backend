@@ -7,5 +7,7 @@ export default {
   host: env.POSTGRES_HOSTNAME,
   port: +env.POSTGRES_PORT,
   database: env.POSTGRES_DBNAME,
+  schema: env.ENVSCHEMA,
   idleTimeoutMillis: 100,
 };
+

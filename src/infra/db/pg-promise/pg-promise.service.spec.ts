@@ -15,4 +15,9 @@ describe('PgPromiseService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('should be connected on dev schema', async () => {
+    const result = await service.db.one('select CURRENT_SCHEMA');
+    expect(result.current_schema).toEqual('dev')
+  });
 });
