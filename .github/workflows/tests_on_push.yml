@@ -21,6 +21,7 @@ jobs:
       SMTP_SECURE: false
       SMTP_USERNAME: paul.nitzsche@ethereal.email
       SMTP_PASSWORD: ${{ secrets.ETHEREAL_PASSWORD }}
+      ENVSCHEMA: dev
 
     services:
       postgres:
@@ -29,6 +30,7 @@ jobs:
           POSTGRES_DB: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_HOST_AUTH_METHOD: trust
+          ENVSCHEMA: dev
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -46,7 +48,11 @@ jobs:
       - name: Create Tables
         env:
           PGPASSWORD: postgres
-        run: psql -v ON_ERROR_STOP=1 --host postgres --username postgres --dbname postgres -a -f src/infra/db/pg-promise/init.sql
+        run: psql -v ON_ERROR_STOP=1 
+          --set ENVSCHEMA=dev 
+          --host postgres --username postgres 
+          --dbname postgres -a 
+          -f src/infra/db/pg-promise/init.sql
 
       - name: Setup Node ${{ matrix.node }}
         uses: actions/setup-node@v4
@@ -57,6 +63,8 @@ jobs:
         run: npm ci
 
       - name: Nest Unit Tests
+        env:
+          ENVSCHEMA: dev
         run: npm run test
 
       - name: Send email when fail tests
