@@ -1,8 +1,10 @@
 -- Adminer 4.8.1 PostgreSQL 14.10 dump
+create schema :"ENVSCHEMA";
+set search_path to :"ENVSCHEMA";
 
 CREATE SEQUENCE about_pages_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."about_pages" (
+CREATE TABLE "about_pages" (
     "id" integer DEFAULT nextval('about_pages_id_seq') NOT NULL,
     "title" character varying NOT NULL,
     "description" character varying NOT NULL,
@@ -16,7 +18,7 @@ CREATE TABLE "public"."about_pages" (
 
 CREATE SEQUENCE contacts_page_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."contact_pages" (
+CREATE TABLE "contact_pages" (
     "id" integer DEFAULT nextval('contacts_page_id_seq') NOT NULL,
     "title" character varying NOT NULL,
     "description" character varying NOT NULL,
@@ -30,7 +32,7 @@ CREATE TABLE "public"."contact_pages" (
 
 CREATE SEQUENCE projects_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."projects" (
+CREATE TABLE "projects" (
     "id" integer DEFAULT nextval('projects_id_seq') NOT NULL,
     "title" character varying NOT NULL,
     "description" character varying NOT NULL,
@@ -44,7 +46,7 @@ CREATE TABLE "public"."projects" (
 
 CREATE SEQUENCE projects_on_users_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."projects_on_users" (
+CREATE TABLE "projects_on_users" (
     "id" integer DEFAULT nextval('projects_on_users_id_seq') NOT NULL,
     "project_id" integer NOT NULL,
     "user_id" integer NOT NULL,
@@ -54,7 +56,7 @@ CREATE TABLE "public"."projects_on_users" (
 
 CREATE SEQUENCE skills_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."skills" (
+CREATE TABLE "skills" (
     "id" integer DEFAULT nextval('skills_id_seq') NOT NULL,
     "title" character varying NOT NULL,
     CONSTRAINT "skills_pkey" PRIMARY KEY ("id"),
@@ -64,7 +66,7 @@ CREATE TABLE "public"."skills" (
 
 CREATE SEQUENCE skills_on_users_projects_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."skills_on_users_projects" (
+CREATE TABLE "skills_on_users_projects" (
     "id" integer DEFAULT nextval('skills_on_users_projects_id_seq') NOT NULL,
     "skill_id" integer NOT NULL,
     "project_on_user_id" integer NOT NULL,
@@ -74,7 +76,7 @@ CREATE TABLE "public"."skills_on_users_projects" (
 
 CREATE SEQUENCE skills_page_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."skills_pages" (
+CREATE TABLE "skills_pages" (
     "id" integer DEFAULT nextval('skills_page_id_seq') NOT NULL,
     "title" character varying NOT NULL,
     "description" character varying NOT NULL,
@@ -86,7 +88,7 @@ CREATE TABLE "public"."skills_pages" (
 
 CREATE SEQUENCE users_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
-CREATE TABLE "public"."users" (
+CREATE TABLE "users" (
     "id" integer DEFAULT nextval('users_id_seq') NOT NULL,
     "name" character varying NOT NULL,
     "email" character varying NOT NULL,
@@ -97,16 +99,16 @@ CREATE TABLE "public"."users" (
 ) WITH (oids = false);
 
 
-ALTER TABLE ONLY "public"."about_pages" ADD CONSTRAINT "about_pages_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "about_pages" ADD CONSTRAINT "about_pages_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
-ALTER TABLE ONLY "public"."contact_pages" ADD CONSTRAINT "contacts_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "contact_pages" ADD CONSTRAINT "contacts_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
-ALTER TABLE ONLY "public"."projects_on_users" ADD CONSTRAINT "projects_on_users_project_id_fkey" FOREIGN KEY (project_id) REFERENCES projects(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
-ALTER TABLE ONLY "public"."projects_on_users" ADD CONSTRAINT "projects_on_users_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "projects_on_users" ADD CONSTRAINT "projects_on_users_project_id_fkey" FOREIGN KEY (project_id) REFERENCES projects(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "projects_on_users" ADD CONSTRAINT "projects_on_users_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
-ALTER TABLE ONLY "public"."skills_on_users_projects" ADD CONSTRAINT "skills_on_projects_project_on_user_id_fkey" FOREIGN KEY (project_on_user_id) REFERENCES projects_on_users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
-ALTER TABLE ONLY "public"."skills_on_users_projects" ADD CONSTRAINT "skills_on_projects_skill_id_fkey" FOREIGN KEY (skill_id) REFERENCES skills(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "skills_on_users_projects" ADD CONSTRAINT "skills_on_projects_project_on_user_id_fkey" FOREIGN KEY (project_on_user_id) REFERENCES projects_on_users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "skills_on_users_projects" ADD CONSTRAINT "skills_on_projects_skill_id_fkey" FOREIGN KEY (skill_id) REFERENCES skills(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
-ALTER TABLE ONLY "public"."skills_pages" ADD CONSTRAINT "skills_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "skills_pages" ADD CONSTRAINT "skills_page_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
 -- 2023-11-21 13:33:01.122348+00
